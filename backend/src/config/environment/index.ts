@@ -1,9 +1,15 @@
 import dotenv from "dotenv";
 
+import { envSchema } from "./enx.schema";
+
 dotenv.config();
 
-export const env = {
-  NODE_ENV: process.env.NODE_ENV || "development",
-  PORT: Number(process.env.PORT) || 5000,
-  HOST: process.env.HOST || "localhost",
-};
+const parsed = envSchema.safeParse(process.env);
+
+if (!parsed.success) {
+  console.error("❌ Invalid environment configuration");
+  console.error(parsed.error.flatten().fieldErrors);
+  process.exit(1);
+}
+
+export const env = parsed.data;
