@@ -17,6 +17,8 @@ export const envSchema = z.object({
 
   JWT_REFRESH_EXPIRES_IN: z.string(),
 
+  JWT_ISSUER: z.string(),
+
   BCRYPT_SALT_ROUNDS: z.coerce.number(),
 });
 
