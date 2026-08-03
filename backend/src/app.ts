@@ -13,6 +13,8 @@ import {
 import {
   errorHandler,
   notFoundMiddleware,
+  rateLimiter,
+  requestLogger,
 } from "./middleware";
 
 const app = express();
@@ -26,6 +28,10 @@ app.use(compressionConfig);
 app.use(cookieParserConfig);
 
 app.use(loggerConfig);
+
+app.use(requestLogger);
+
+app.use(rateLimiter);
 
 app.use(express.json());
 
