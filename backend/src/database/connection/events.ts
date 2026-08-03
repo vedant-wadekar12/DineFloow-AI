@@ -1,20 +1,20 @@
 import mongoose from "mongoose";
+import { logger } from "../../config";
 
 export const registerDatabaseEvents = (): void => {
   mongoose.connection.on("connected", () => {
-    console.log("🟢 MongoDB Connected");
+    logger.info("MongoDB Connected");
   });
 
   mongoose.connection.on("disconnected", () => {
-    console.warn("🟡 MongoDB Disconnected");
+    logger.warn("MongoDB Disconnected");
   });
 
   mongoose.connection.on("reconnected", () => {
-    console.log("🔵 MongoDB Reconnected");
+    logger.info("MongoDB Reconnected");
   });
 
   mongoose.connection.on("error", (error) => {
-    console.error("🔴 MongoDB Error");
-    console.error(error);
+    logger.error(error);
   });
 };

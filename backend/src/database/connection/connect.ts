@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { logger } from "../../config";
 
 import { env } from "../../config";
 
@@ -14,17 +15,17 @@ export const connectDatabase = async () => {
     try {
       await mongoose.connect(env.MONGODB_URI);
 
-      console.log("✅ MongoDB Connected");
+      logger.info("✅ MongoDB Connected");
 
-      console.log(`Database : ${mongoose.connection.name}`);
+      logger.info(`Database : ${mongoose.connection.name}`);
 
-      console.log(`Host : ${mongoose.connection.host}`);
+      logger.info(`Host : ${mongoose.connection.host}`);
 
       return;
     } catch (error) {
       attempts++;
 
-      console.error(
+      logger.error(
         `MongoDB Connection Failed (${attempts}/${MAX_RETRY_ATTEMPTS})`
       );
 

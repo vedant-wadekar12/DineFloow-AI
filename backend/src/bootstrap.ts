@@ -1,5 +1,5 @@
 import app from "./app";
-
+import { logger } from "./config";
 import { env } from "./config";
 
 import {
@@ -13,15 +13,15 @@ const startServer = async () => {
   await connectDatabase();
 
   const server = app.listen(env.PORT, () => {
-    console.log("==================================");
-    console.log("🚀 DineFlow AI Backend Started");
-    console.log(`Environment : ${env.NODE_ENV}`);
-    console.log(`Server      : http://${env.HOST}:${env.PORT}`);
-    console.log("==================================");
+    logger.info("==================================");
+    logger.info("🚀 DineFlow AI Backend Started");
+    logger.info(`Environment : ${env.NODE_ENV}`);
+    logger.info(`Server      : http://${env.HOST}:${env.PORT}`);
+    logger.info("==================================");
   });
 
   const shutdown = async (signal: string) => {
-    console.log(`\n${signal} received`);
+    logger.info(`\n${signal} received`);
 
     server.close(async () => {
       await disconnectDatabase();
