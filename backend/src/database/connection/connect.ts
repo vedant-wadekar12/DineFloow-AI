@@ -2,20 +2,39 @@ import mongoose from "mongoose";
 
 import { env } from "../../config";
 
-export const connectDatabase = async (): Promise<void> => {
-  try {
-    await mongoose.connect(env.MONGODB_URI);
+import { configureMongoose } from "./mongoose.config";
+import { MAX_RETRY_ATTEMPTS, RETRY_DELAY } from "./retry";
 
-    console.log("✅ MongoDB Connected");
+export const connectDatabase = async () => {
+  configureMongoose();
 
-    console.log(`Database : ${mongoose.connection.name}`);
+  let attempts = 0;
 
-    console.log(`Host     : ${mongoose.connection.host}`);
-  } catch (error) {
-    console.error("❌ MongoDB Connection Failed");
+  while (attempts < MAX_RETRY_ATTEMPTS) {
+    try {
+      await mongoose.connect(env.MONGODB_URI);
 
-    console.error(error);
+      console.log("✅ MongoDB Connected");
 
-    process.exit(1);
+      console.log(`Database : ${mongoose.connection.name}`);
+
+      console.log(`Host : ${mongoose.connection.host}`);
+
+      return;
+    } catch (error) {
+      attempts++;
+
+      console.error(
+        `MongoDB Connection Failed (${attempts}/${MAX_RETRY_ATTEMPTS})`
+      );
+
+      if (attempts >= MAX_RETRY_ATTEMPTS) {
+        process.exit(1);
+      }
+
+      await new Promise((resolve) =>
+        setTimeout(resolve, RETRY_DELAY)
+      );
+    }
   }
 };

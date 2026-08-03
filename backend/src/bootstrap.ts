@@ -5,9 +5,11 @@ import { env } from "./config";
 import {
   connectDatabase,
   disconnectDatabase,
+  registerDatabaseEvents,
 } from "./database";
 
 const startServer = async () => {
+  registerDatabaseEvents();
   await connectDatabase();
 
   const server = app.listen(env.PORT, () => {

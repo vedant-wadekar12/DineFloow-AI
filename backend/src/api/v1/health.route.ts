@@ -14,8 +14,11 @@ router.get("/health", (_req, res) => {
 
       database: {
         connected: mongoose.connection.readyState === 1,
+        state: mongoose.connection.readyState,
+        name: mongoose.connection.name,
+        host: mongoose.connection.host,
       },
-    })
+    }),
   );
 });
 
