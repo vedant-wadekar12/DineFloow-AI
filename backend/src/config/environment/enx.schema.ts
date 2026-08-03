@@ -6,6 +6,8 @@ export const envSchema = z.object({
   PORT: z.coerce.number().positive(),
 
   HOST: z.string().min(1),
+
+  MONGODB_URI: z.string().min(1),
 });
 
 export type Env = z.infer<typeof envSchema>;
