@@ -21,8 +21,6 @@ export interface IUser extends Document {
 
   roleId: Types.ObjectId;
 
-  refreshToken?: string;
-
   passwordChangedAt?: Date;
 
   lastLogin?: Date;
@@ -99,10 +97,6 @@ const userSchema = new Schema<IUser>(
       required: true,
     },
 
-    refreshToken: {
-      type: String,
-      select: false,
-    },
 
     passwordChangedAt: Date,
 
@@ -198,7 +192,6 @@ userSchema.methods.changedPasswordAfter = function (
 userSchema.set("toJSON", {
   transform(_doc, ret) {
     delete ret.password;
-    delete ret.refreshToken;
 
     return ret;
   },
