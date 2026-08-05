@@ -1,6 +1,7 @@
 import app from "./app";
 import { logger } from "./config";
 import { env } from "./config";
+import { seedDatabase } from "./database/seeders";
 
 import {
   connectDatabase,
@@ -8,9 +9,11 @@ import {
   registerDatabaseEvents,
 } from "./database";
 
+
 const startServer = async () => {
   registerDatabaseEvents();
   await connectDatabase();
+  await seedDatabase();
 
   const server = app.listen(env.PORT, () => {
     logger.info("==================================");
