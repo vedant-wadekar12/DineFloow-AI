@@ -97,7 +97,6 @@ const userSchema = new Schema<IUser>(
       required: true,
     },
 
-
     passwordChangedAt: Date,
 
     lastLogin: Date,
@@ -144,17 +143,15 @@ const userSchema = new Schema<IUser>(
    Password Hashing
 =========================== */
 
-userSchema.pre("save", async function (next) {
+userSchema.pre("save", async function () {
   if (!this.isModified("password")) {
-    return next();
+    return;
   }
 
   this.password = await bcrypt.hash(
     this.password,
     env.BCRYPT_SALT_ROUNDS
   );
-
-  next();
 });
 
 /* ===========================
@@ -191,9 +188,13 @@ userSchema.methods.changedPasswordAfter = function (
 
 userSchema.set("toJSON", {
   transform(_doc, ret) {
-    delete ret.password;
+    const result = ret as unknown as Record<string, unknown>;
 
-    return ret;
+    delete result.password;
+    delete result.refreshToken;
+    delete result.__v;
+
+    return result;
   },
 });
 

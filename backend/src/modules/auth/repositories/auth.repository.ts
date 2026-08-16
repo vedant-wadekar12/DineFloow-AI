@@ -6,25 +6,29 @@ export class AuthRepository {
   /**
    * Create User
    */
-  async createUser(payload: Partial<IUser>): Promise<IUser> {
+  async create(payload: Partial<IUser>): Promise<IUser> {
     return await User.create(payload);
   }
 
   /**
    * Find User By Email
-   * Password is included because select:false is set in schema
+   *
+   * Password is explicitly selected because
+   * password has select: false in the schema.
    */
-  async findUserByEmail(email: string): Promise<IUser | null> {
+  async findByEmail(email: string): Promise<IUser | null> {
     return await User.findOne({
       email,
       isDeleted: false,
-    }).select("+password +refreshToken");
+    }).select("+password");
   }
 
   /**
    * Find User By ID
    */
-  async findUserById(id: string | Types.ObjectId): Promise<IUser | null> {
+  async findById(
+    id: string | Types.ObjectId
+  ): Promise<IUser | null> {
     return await User.findOne({
       _id: id,
       isDeleted: false,
@@ -34,35 +38,10 @@ export class AuthRepository {
   /**
    * Find User By Phone
    */
-  async findUserByPhone(phone: string): Promise<IUser | null> {
+  async findByPhone(phone: string): Promise<IUser | null> {
     return await User.findOne({
       phone,
       isDeleted: false,
-    });
-  }
-
-  /**
-   * Update Refresh Token
-   */
-  async updateRefreshToken(
-    id: string | Types.ObjectId,
-    refreshToken: string
-  ): Promise<void> {
-    await User.findByIdAndUpdate(id, {
-      refreshToken,
-    });
-  }
-
-  /**
-   * Remove Refresh Token
-   */
-  async removeRefreshToken(
-    id: string | Types.ObjectId
-  ): Promise<void> {
-    await User.findByIdAndUpdate(id, {
-      $unset: {
-        refreshToken: 1,
-      },
     });
   }
 

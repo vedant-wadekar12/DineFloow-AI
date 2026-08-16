@@ -1,7 +1,8 @@
+import { HTTP_STATUS } from "../constants";
 import { AppError } from "./app-error";
 
 export class NotFoundError extends AppError {
-  constructor(message = "Resource Not Found") {
-    super(message, 404);
+  constructor(message = "Resource not found") {
+    super(message, HTTP_STATUS.NOT_FOUND);
   }
 }

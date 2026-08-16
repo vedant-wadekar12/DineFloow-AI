@@ -1,35 +1,34 @@
 import { NextFunction, Request, Response } from "express";
+import { ZodError } from "zod";
 
-import { ApiResponse } from "../../common/responses";
 import { AppError } from "../../common/errors";
+import { logger } from "../../config";
 
 export const errorHandler = (
-  error: Error,
+  err: Error,
   _req: Request,
   res: Response,
   _next: NextFunction
 ) => {
-  if (error instanceof AppError) {
-    return res.status(error.statusCode).json(
-      new ApiResponse(
-        false,
-        error.message,
-        null,
-        null,
-        null
-      )
-    );
+  logger.error(err);
+
+  if (err instanceof ZodError) {
+    return res.status(400).json({
+      success: false,
+      message: "Validation Failed",
+      errors: err.flatten(),
+    });
   }
 
-  console.error(error);
+  if (err instanceof AppError) {
+    return res.status(err.statusCode).json({
+      success: false,
+      message: err.message,
+    });
+  }
 
-  return res.status(500).json(
-    new ApiResponse(
-      false,
-      "Internal Server Error",
-      null,
-      null,
-      null
-    )
-  );
+  return res.status(500).json({
+    success: false,
+    message: "Internal Server Error",
+  });
 };
