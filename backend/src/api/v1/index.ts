@@ -1,6 +1,7 @@
 import { Router } from "express";
 
 import { ApiResponse } from "../../common/responses";
+import { authRoutes } from "../../modules/auth";
 
 const router = Router();
 
@@ -15,5 +16,7 @@ router.get("/health", (_req, res) => {
     )
   );
 });
+
+router.use("/auth", authRoutes);
 
 export default router;
