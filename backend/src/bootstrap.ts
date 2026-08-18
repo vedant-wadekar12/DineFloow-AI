@@ -1,7 +1,6 @@
 import app from "./app";
-import { logger } from "./config";
+
 import { env } from "./config";
-import { seedDatabase } from "./database/seeders";
 
 import {
   connectDatabase,
@@ -9,33 +8,67 @@ import {
   registerDatabaseEvents,
 } from "./database";
 
-
-const startServer = async () => {
+const startServer = async (): Promise<void> => {
   registerDatabaseEvents();
-  await connectDatabase();
-  await seedDatabase();
 
-  const server = app.listen(env.PORT, () => {
-    logger.info("==================================");
-    logger.info("🚀 DineFlow AI Backend Started");
-    logger.info(`Environment : ${env.NODE_ENV}`);
-    logger.info(`Server      : http://${env.HOST}:${env.PORT}`);
-    logger.info("==================================");
-  });
+  await connectDatabase();
+
+  const server = app.listen(
+    env.PORT,
+    env.HOST,
+    () => {
+      console.log(
+        "======================================"
+      );
+
+      console.log(
+        "🚀 DineFlow AI Backend Started"
+      );
+
+      console.log(
+        `Environment : ${env.NODE_ENV}`
+      );
+
+      console.log(
+        `Server      : http://${env.HOST}:${env.PORT}`
+      );
+
+      console.log(
+        "======================================"
+      );
+    }
+  );
 
   const shutdown = async (signal: string) => {
-    logger.info(`\n${signal} received`);
+    console.log(`\n${signal} received`);
 
     server.close(async () => {
       await disconnectDatabase();
+
+      console.log(
+        "✅ Server shut down gracefully"
+      );
 
       process.exit(0);
     });
   };
 
-  process.on("SIGINT", () => shutdown("SIGINT"));
+  process.on(
+    "SIGINT",
+    () => shutdown("SIGINT")
+  );
 
-  process.on("SIGTERM", () => shutdown("SIGTERM"));
+  process.on(
+    "SIGTERM",
+    () => shutdown("SIGTERM")
+  );
 };
 
-startServer();
+startServer().catch((error) => {
+  console.error(
+    "❌ Failed to start server:",
+    error
+  );
+
+  process.exit(1);
+});
