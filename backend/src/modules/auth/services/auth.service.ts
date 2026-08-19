@@ -6,8 +6,8 @@ import {
 } from "../../../common/errors";
 
 import {
-  passwordUtil,
   tokenUtil,
+  passwordUtil,
 } from "../../../common/utilities";
 
 import { authRepository } from "../repositories/auth.repository";
@@ -35,16 +35,14 @@ export class AuthService {
       throw new UnauthorizedError("Invalid role.");
     }
 
-    const hashedPassword = await passwordUtil.hash(
-      payload.password
-    );
-
     const user = await authRepository.create({
       firstName: payload.firstName,
       lastName: payload.lastName,
       email: payload.email,
       phone: payload.phone,
-      password: hashedPassword,
+
+      // Password will be hashed by the User model pre-save hook
+      password: payload.password,
 
       roleId: new Types.ObjectId(payload.roleId),
 
@@ -106,6 +104,8 @@ export class AuthService {
         Date.now() + 7 * 24 * 60 * 60 * 1000
       ),
     });
+
+    await authRepository.updateLastLogin(user._id);
 
     return {
       user,
