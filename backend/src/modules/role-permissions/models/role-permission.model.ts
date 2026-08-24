@@ -2,7 +2,6 @@ import { Document, Schema, Types, model } from "mongoose";
 
 export interface IRolePermission extends Document {
   roleId: Types.ObjectId;
-
   permissionId: Types.ObjectId;
 }
 
@@ -28,17 +27,9 @@ const rolePermissionSchema = new Schema<IRolePermission>(
   }
 );
 
-/**
- * Prevent duplicate mappings
- */
 rolePermissionSchema.index(
-  {
-    roleId: 1,
-    permissionId: 1,
-  },
-  {
-    unique: true,
-  }
+  { roleId: 1, permissionId: 1 },
+  { unique: true }
 );
 
 export const RolePermission = model<IRolePermission>(
