@@ -1,14 +1,43 @@
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, Response } from "express";
+
+import { UnauthorizedError } from "../../common/errors";
+import { AuthenticatedRequest } from "../../common/interfaces";
+import { tokenUtil } from "../../common/utilities";
 
 export const authenticate = (
-  _req: Request,
+  req: AuthenticatedRequest,
   _res: Response,
   next: NextFunction
 ) => {
-  /**
-   * JWT Verification
-   * Stage 7
-   */
+  try {
+    const authHeader = req.headers.authorization;
 
-  next();
+    if (!authHeader) {
+      throw new UnauthorizedError(
+        "Authentication token is required."
+      );
+    }
+
+    const [scheme, token] = authHeader.split(" ");
+
+    if (scheme !== "Bearer" || !token) {
+      throw new UnauthorizedError(
+        "Invalid authentication format."
+      );
+    }
+
+    const payload = tokenUtil.verifyAccessToken(token);
+
+    req.user = payload;
+
+    next();
+  } catch (error) {
+    next(
+      error instanceof UnauthorizedError
+        ? error
+        : new UnauthorizedError(
+            "Invalid or expired authentication token."
+          )
+    );
+  }
 };
