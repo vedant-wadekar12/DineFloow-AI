@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 
 import { authService } from "../services/auth.service";
+import { refreshTokenRepository } from "../../refresh-tokens";
 
 export class AuthController {
   /**
@@ -39,6 +40,30 @@ export class AuthController {
         success: true,
         message: "Login successful",
         data: result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Logout user
+   */
+  async logout(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { refreshToken } = req.body;
+
+      await refreshTokenRepository.revokeToken(
+        refreshToken
+      );
+
+      return res.status(200).json({
+        success: true,
+        message: "Logout successful",
       });
     } catch (error) {
       next(error);
