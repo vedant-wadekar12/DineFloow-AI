@@ -8,10 +8,14 @@ import {
   registerDatabaseEvents,
 } from "./database";
 
+import { seedDatabase } from "./database/seeders";
+
 const startServer = async (): Promise<void> => {
   registerDatabaseEvents();
 
   await connectDatabase();
+
+  await seedDatabase();
 
   const server = app.listen(
     env.PORT,
