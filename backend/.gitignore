@@ -7,9 +7,8 @@ coverage/
 logs/
 
 uploads/
+
 .gitignore
-.env
-.env.local
 
 *.log
 
