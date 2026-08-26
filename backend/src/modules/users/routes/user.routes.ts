@@ -1,5 +1,9 @@
 import { Router } from "express";
 
+import { validateRequest } from "../../../middleware/validation";
+
+import { updateUserSchema } from "../validators/user.validator";
+
 import {
   authenticate,
   authorizeUser,
@@ -21,6 +25,7 @@ router.patch(
   "/:userId",
   authenticate,
   authorizeUser,
+  validateRequest(updateUserSchema),
   (req, res, next) =>
     userController.updateProfile(req, res, next)
 );
