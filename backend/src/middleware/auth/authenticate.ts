@@ -34,14 +34,13 @@ export const authenticate = async (
     const payload = tokenUtil.verifyAccessToken(token);
 
     /**
-     * Check that the user still exists
-     * and has not been deleted.
+     * Find the current user
      */
     const user = await authRepository.findById(
       payload.userId
     );
 
-    if (!user) {
+    if (!user || user.isDeleted) {
       throw new UnauthorizedError(
         "User account no longer exists."
       );
@@ -53,6 +52,16 @@ export const authenticate = async (
     if (!user.isActive) {
       throw new UnauthorizedError(
         "User account is inactive."
+      );
+    }
+
+    /**
+     * Reject tokens created before
+     * the user's password was changed.
+     */
+    if (user.changedPasswordAfter(payload.iat ?? 0)) {
+      throw new UnauthorizedError(
+        "Password was changed. Please login again."
       );
     }
 
