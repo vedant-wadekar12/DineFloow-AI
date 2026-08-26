@@ -38,7 +38,9 @@ export class AuthRepository {
   /**
    * Find User By Phone
    */
-  async findByPhone(phone: string): Promise<IUser | null> {
+  async findByPhone(
+    phone: string
+  ): Promise<IUser | null> {
     return await User.findOne({
       phone,
       isDeleted: false,
@@ -93,6 +95,33 @@ export class AuthRepository {
     await User.findByIdAndUpdate(id, {
       lockUntil,
     });
+  }
+
+  /**
+   * Update User Profile
+   */
+  async updateProfile(
+    id: string,
+    payload: {
+      firstName?: string;
+      lastName?: string;
+      phone?: string;
+      profileImage?: string;
+    }
+  ): Promise<IUser | null> {
+    return await User.findOneAndUpdate(
+      {
+        _id: id,
+        isDeleted: false,
+      },
+      {
+        $set: payload,
+      },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
   }
 }
 

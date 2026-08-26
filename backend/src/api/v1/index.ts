@@ -10,6 +10,8 @@ import protectedRoutes from "./protected.routes";
 
 import authorizationTestRoutes from "./authorization-test.routes";
 
+import userRoutes from "../../modules/users/routes/user.routes";
+
 const router = Router();
 
 router.get("/health", (_req, res) => {
@@ -31,5 +33,7 @@ router.use("/auth", refreshTokenRoutes);
 router.use("/protected", protectedRoutes);
 
 router.use("/authorization-test", authorizationTestRoutes);
+
+router.use("/users", userRoutes);
 
 export default router;
