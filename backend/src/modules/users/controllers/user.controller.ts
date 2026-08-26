@@ -64,6 +64,26 @@ export class UserController {
       next(error);
     }
   }
+
+  async deactivateAccount(
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    await authRepository.deactivateAccount(
+      req.user!.userId
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Account deactivated successfully.",
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 }
 
 export const userController = new UserController();

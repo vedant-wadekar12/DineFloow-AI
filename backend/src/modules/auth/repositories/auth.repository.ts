@@ -123,6 +123,26 @@ export class AuthRepository {
       }
     );
   }
+
+  /**
+   * Deactivate Account
+   */
+  async deactivateAccount(
+    id: string | Types.ObjectId
+  ): Promise<void> {
+    await User.findOneAndUpdate(
+      {
+        _id: id,
+        isDeleted: false,
+      },
+      {
+        $set: {
+          isActive: false,
+        },
+      }
+    );
+  }
 }
+
 
 export const authRepository = new AuthRepository();

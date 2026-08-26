@@ -30,5 +30,12 @@ router.patch(
     userController.updateProfile(req, res, next)
 );
 
+router.patch(
+  "/:userId/deactivate",
+  authenticate,
+  authorizeUser,
+  (req, res, next) =>
+    userController.deactivateAccount(req, res, next)
+);
 
 export default router;
