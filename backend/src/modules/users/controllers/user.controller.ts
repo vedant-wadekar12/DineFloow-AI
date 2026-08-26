@@ -3,6 +3,8 @@ import { NextFunction, Response } from "express";
 import { AuthenticatedRequest } from "../../../common/interfaces";
 import { authRepository } from "../../auth/repositories/auth.repository";
 
+import { passwordUtil } from "../../../common/utilities";
+
 export class UserController {
   /**
    * Get User Profile
@@ -83,7 +85,52 @@ export class UserController {
     next(error);
   }
 }
+async changePassword(
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const { currentPassword, newPassword } = req.body;
 
+    const user =
+      await authRepository.findByIdWithPassword(
+        req.user!.userId
+      );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found.",
+      });
+    }
+
+    const isValid =
+      await user.comparePassword(currentPassword);
+
+    if (!isValid) {
+      return res.status(401).json({
+        success: false,
+        message: "Current password is incorrect.",
+      });
+    }
+
+    const hashedPassword =
+      await passwordUtil.hash(newPassword);
+
+    await authRepository.updatePassword(
+      user._id,
+      hashedPassword
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Password changed successfully.",
+    });
+  } catch (error) {
+    next(error);
+  }
+}
 }
 
 export const userController = new UserController();
