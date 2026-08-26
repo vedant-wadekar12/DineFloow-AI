@@ -45,3 +45,7 @@ export const changePasswordSchema = z
       path: ["confirmPassword"],
     }
   );
+
+  export const forgotPasswordSchema = z.object({
+  email: z.string().trim().email("Invalid email address"),
+});
