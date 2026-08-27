@@ -1,20 +1,13 @@
 import { Types } from "mongoose";
 
-import {
-  IPasswordReset,
-  PasswordReset,
-} from "../models/password-reset.model";
+import { IPasswordReset, PasswordReset } from "../models/password-reset.model";
 
 export class PasswordResetRepository {
-  async create(
-    payload: Partial<IPasswordReset>
-  ): Promise<IPasswordReset> {
+  async create(payload: Partial<IPasswordReset>): Promise<IPasswordReset> {
     return await PasswordReset.create(payload);
   }
 
-  async findByToken(
-    token: string
-  ): Promise<IPasswordReset | null> {
+  async findByToken(token: string): Promise<IPasswordReset | null> {
     return await PasswordReset.findOne({
       token,
       used: false,
@@ -22,22 +15,23 @@ export class PasswordResetRepository {
     });
   }
 
-  async markUsed(
-    id: string | Types.ObjectId
-  ): Promise<void> {
+  async markUsed(id: string | Types.ObjectId): Promise<void> {
     await PasswordReset.findByIdAndUpdate(id, {
       used: true,
     });
   }
 
-  async deleteUserTokens(
-    userId: string | Types.ObjectId
-  ): Promise<void> {
+  async deleteUserTokens(userId: string | Types.ObjectId): Promise<void> {
     await PasswordReset.deleteMany({
       userId,
     });
   }
+
+  async deleteToken(token: string): Promise<void> {
+    await PasswordReset.deleteOne({
+      token,
+    });
+  }
 }
 
-export const passwordResetRepository =
-  new PasswordResetRepository();
+export const passwordResetRepository = new PasswordResetRepository();

@@ -2,6 +2,8 @@ import { Types } from "mongoose";
 
 import { IUser, User } from "../models/user.model";
 
+import { passwordUtil } from "../../../common/utilities";
+
 export class AuthRepository {
   /**
    * Create User
@@ -141,14 +143,17 @@ export class AuthRepository {
   }
 
   async updatePassword(
-    id: string | Types.ObjectId,
-    password: string,
-  ): Promise<void> {
-    await User.findByIdAndUpdate(id, {
-      password,
-      passwordChangedAt: new Date(),
-    });
-  }
+  id: string | Types.ObjectId,
+  password: string
+): Promise<void> {
+  const hashedPassword =
+    await passwordUtil.hash(password);
+
+  await User.findByIdAndUpdate(id, {
+    password: hashedPassword,
+    passwordChangedAt: new Date(),
+  });
+}
 }
 
 export const authRepository = new AuthRepository();
