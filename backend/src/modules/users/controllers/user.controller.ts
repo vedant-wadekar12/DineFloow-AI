@@ -1,9 +1,10 @@
 import { NextFunction, Response } from "express";
 
 import { AuthenticatedRequest } from "../../../common/interfaces";
-import { authRepository } from "../../auth/repositories/auth.repository";
-
 import { passwordUtil } from "../../../common/utilities";
+
+import { authRepository } from "../../auth/repositories/auth.repository";
+import { userService } from "../services/user.service";
 
 export class UserController {
   /**
@@ -126,6 +127,43 @@ async changePassword(
     return res.status(200).json({
       success: true,
       message: "Password changed successfully.",
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+async getAllUsers(
+  _req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const users = await userService.getAll();
+
+    return res.status(200).json({
+      success: true,
+      message: "Users retrieved successfully.",
+      data: users,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+async getUserById(
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const user = await userService.getById(
+      String(req.params.userId)
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "User retrieved successfully.",
+      data: user,
     });
   } catch (error) {
     next(error);
