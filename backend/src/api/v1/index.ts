@@ -14,6 +14,7 @@ import userRoutes from "../../modules/users/routes/user.routes";
 
 import passwordResetRoutes from "../../modules/password-resets/routes/password-reset.routes";
 
+
 const router = Router();
 
 router.get("/health", (_req, res) => {

@@ -2,7 +2,7 @@ import { NextFunction, Response } from "express";
 
 import { AuthenticatedRequest } from "../../../common/interfaces";
 import { passwordUtil } from "../../../common/utilities";
-
+import { userRepository } from "../repositories/user.repository";
 import { authRepository } from "../../auth/repositories/auth.repository";
 import { userService } from "../services/user.service";
 
@@ -37,6 +37,25 @@ export class UserController {
     }
   }
 
+  async deleteUser(
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    await userService.delete(
+      String(req.params.userId)
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "User deleted successfully.",
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
   /**
    * Update User Profile
    */
@@ -67,6 +86,57 @@ export class UserController {
       next(error);
     }
   }
+
+  async updateRole(
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const user = await userService.updateRole(
+      String(req.params.userId),
+      req.body.roleId
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "User role updated successfully.",
+      data: user,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+  async updateStatus(
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const { isActive } = req.body;
+
+    const user = await userRepository.updateStatus(
+      req.params.userId as string,
+      isActive
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found.",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "User status updated successfully.",
+      data: user,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
 
   async deactivateAccount(
   req: AuthenticatedRequest,
