@@ -14,6 +14,13 @@ import userRoutes from "../../modules/users/routes/user.routes";
 
 import passwordResetRoutes from "../../modules/password-resets/routes/password-reset.routes";
 
+import rolePermissionRoutes from "../../modules/role-permissions/routes/role-permission.routes";
+
+import permissionRoutes from "../../modules/permissions/routes/permission.routes";
+
+import restaurantRoutes from "../../modules/restaurants/routes/restaurant.routes";
+
+import branchRoutes from "../../modules/branches/routes/branch.routes";
 
 const router = Router();
 
@@ -40,5 +47,25 @@ router.use("/authorization-test", authorizationTestRoutes);
 router.use("/users", userRoutes);
 
 router.use("/auth", passwordResetRoutes);
+
+router.use(
+  "/role-permissions",
+  rolePermissionRoutes
+);
+
+router.use(
+  "/permissions",
+  permissionRoutes
+);
+
+router.use(
+  "/restaurants",
+  restaurantRoutes
+);
+
+router.use(
+  "/branches",
+  branchRoutes
+);
 
 export default router;
