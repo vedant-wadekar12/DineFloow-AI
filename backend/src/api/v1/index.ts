@@ -22,6 +22,10 @@ import restaurantRoutes from "../../modules/restaurants/routes/restaurant.routes
 
 import branchRoutes from "../../modules/branches/routes/branch.routes";
 
+import floorRoutes from "../../modules/floors/routes/floor.routes";
+
+import tableRoutes from "../../modules/tables/routes/table.routes";
+
 const router = Router();
 
 router.get("/health", (_req, res) => {
@@ -66,6 +70,16 @@ router.use(
 router.use(
   "/branches",
   branchRoutes
+);
+
+router.use(
+  "/floors",
+  floorRoutes
+);
+
+router.use(
+  "/tables",
+  tableRoutes
 );
 
 export default router;
