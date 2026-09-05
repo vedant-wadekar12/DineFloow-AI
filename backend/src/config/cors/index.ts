@@ -1,6 +1,7 @@
 import cors from "cors";
+import { env } from "../environment";
 
 export const corsConfig = cors({
-  origin: true,
+  origin: env.CLIENT_URL,
   credentials: true,
 });

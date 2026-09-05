@@ -3,6 +3,7 @@ import { z } from "zod";
 /**
  * Register Validation
  */
+
 export const registerSchema = z
   .object({
     firstName: z
@@ -27,7 +28,7 @@ export const registerSchema = z
       .string()
       .trim()
       .min(10, "Phone number is required")
-      .max(15),
+      .max(15, "Phone number is too long"),
 
     password: z
       .string()
@@ -35,12 +36,6 @@ export const registerSchema = z
       .max(100),
 
     confirmPassword: z.string(),
-
-    roleId: z.string(),
-
-    restaurantId: z.string().optional(),
-
-    branchId: z.string().optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",

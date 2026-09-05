@@ -20,6 +20,12 @@ export const envSchema = z.object({
   JWT_ISSUER: z.string(),
 
   BCRYPT_SALT_ROUNDS: z.coerce.number(),
+
+  EMAIL_USER: z.string().email(),
+
+  EMAIL_PASS: z.string().min(1),
+
+  CLIENT_URL: z.string().url(),
 });
 
 export type Env = z.infer<typeof envSchema>;

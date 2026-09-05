@@ -5,9 +5,6 @@ export interface RegisterDto {
   phone: string;
   password: string;
   confirmPassword: string;
-  roleId: string;
-  restaurantId?: string;
-  branchId?: string;
 }
 
 export interface LoginDto {

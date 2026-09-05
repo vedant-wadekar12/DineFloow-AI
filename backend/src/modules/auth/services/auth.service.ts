@@ -17,46 +17,44 @@ import { refreshTokenRepository } from "../../refresh-tokens";
 import { RegisterDto, LoginDto } from "../dto/auth.dto";
 
 export class AuthService {
-  /**
-   * Register User
-   */
-  async register(payload: RegisterDto) {
-    const existingUser = await authRepository.findByEmail(
-      payload.email
-    );
+/**
+ * Register User
+ */
+async register(payload: RegisterDto) {
+  const existingUser = await authRepository.findByEmail(
+    payload.email
+  );
 
-    if (existingUser) {
-      throw new ConflictError("Email already exists.");
-    }
-
-    const role = await roleRepository.findById(payload.roleId);
-
-    if (!role) {
-      throw new UnauthorizedError("Invalid role.");
-    }
-
-    const user = await authRepository.create({
-      firstName: payload.firstName,
-      lastName: payload.lastName,
-      email: payload.email,
-      phone: payload.phone,
-
-      // Password will be hashed by the User model pre-save hook
-      password: payload.password,
-
-      roleId: new Types.ObjectId(payload.roleId),
-
-      restaurantId: payload.restaurantId
-        ? new Types.ObjectId(payload.restaurantId)
-        : undefined,
-
-      branchId: payload.branchId
-        ? new Types.ObjectId(payload.branchId)
-        : undefined,
-    });
-
-    return user;
+  if (existingUser) {
+    throw new ConflictError("Email already exists.");
   }
+
+  // Public registrations are automatically assigned
+  // the RESTAURANT_OWNER role.
+  const role = await roleRepository.findByName(
+    "RESTAURANT_OWNER"
+  );
+
+  if (!role) {
+    throw new UnauthorizedError(
+      "Default registration role is not configured."
+    );
+  }
+
+  const user = await authRepository.create({
+    firstName: payload.firstName,
+    lastName: payload.lastName,
+    email: payload.email,
+    phone: payload.phone,
+
+    // Password will be hashed by the User model pre-save hook
+    password: payload.password,
+
+    roleId: role._id,
+  });
+
+  return user;
+}
 
   /**
    * Login User

@@ -9,16 +9,14 @@ export class PasswordResetController {
     next: NextFunction
   ) {
     try {
-      const result =
-        await passwordResetService.forgotPassword(
-          req.body.email
-        );
+      await passwordResetService.forgotPassword(
+        req.body.email
+      );
 
       return res.status(200).json({
         success: true,
         message:
-          "If the email exists, a password reset token has been generated.",
-        data: result ?? null,
+          "If an account exists for this email, password reset instructions have been sent.",
       });
     } catch (error) {
       next(error);
