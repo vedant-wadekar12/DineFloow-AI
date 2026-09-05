@@ -26,6 +26,10 @@ import floorRoutes from "../../modules/floors/routes/floor.routes";
 
 import tableRoutes from "../../modules/tables/routes/table.routes";
 
+import categoryRoutes from "../../modules/categories/routes/category.routes";
+
+import menuItemRoutes from "../../modules/menu/routes/menu-item.routes";
+
 const router = Router();
 
 router.get("/health", (_req, res) => {
@@ -80,6 +84,16 @@ router.use(
 router.use(
   "/tables",
   tableRoutes
+);
+
+router.use(
+  "/categories",
+  categoryRoutes
+);
+
+router.use(
+  "/menu-items",
+  menuItemRoutes
 );
 
 export default router;
