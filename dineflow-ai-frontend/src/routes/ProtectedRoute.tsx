@@ -1,7 +1,10 @@
-import { Navigate, Outlet, useLocation } from "react-router-dom";
+import {
+  Navigate,
+  Outlet,
+  useLocation,
+} from "react-router-dom";
 
 import { useAuth } from "@/hooks/useAuth";
-
 import LoadingState from "@/components/common/LoadingState";
 
 function ProtectedRoute() {
@@ -23,9 +26,7 @@ function ProtectedRoute() {
       <Navigate
         to="/login"
         replace
-        state={{
-          from: location,
-        }}
+        state={{ from: location }}
       />
     );
   }
