@@ -1,5 +1,4 @@
 import type { LucideIcon } from "lucide-react";
-
 import {
   LayoutDashboard,
   Store,
@@ -16,6 +15,7 @@ import {
   BarChart3,
   Bell,
   Sparkles,
+  Utensils,
   Settings,
 } from "lucide-react";
 
@@ -135,4 +135,18 @@ export const navigationItems: NavigationItem[] = [
     href: "/settings",
     icon: Settings,
   },
+  {
+  label: "Menu",
+  href: "/menu",
+  icon: Utensils,
+  permissions: ["menu:read"],
+  },
+  {
+  label: "Staff",
+  href: "/staff",
+  icon: Users,
+  permissions: ["user:read"],
+  }
 ];
+
+export default navigationItems; 

@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import NavItem from "@/components/navigation/NavItem";
 import { navigationItems } from "@/components/navigation/navigation.config";
 
+
 interface SidebarProps {
   onNavigate?: () => void;
 }

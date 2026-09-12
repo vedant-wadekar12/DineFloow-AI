@@ -3,17 +3,24 @@ import {
   Route,
   Routes,
 } from "react-router-dom";
-
+import EditRestaurantPage from "@/pages/Restaurants/EditRestaurantPage";
+import Restaurants from "@/pages/Restaurants/Restaurants";
+import RestaurantDetailsPage from "@/pages/Restaurants/RestaurantDetailsPage";
 import ProtectedRoute from "./ProtectedRoute";
 import DashboardLayout from "@/layouts/DashboardLayout";
-
+import Branches from "@/pages/Branches/Branches";
+import BranchDetails from "@/pages/Branches/BranchDetails";
+import Floors from "@/pages/Floors/Floors";
+import FloorDetails from "@/pages/Floors/FloorDetails";
+import Tables from "@/pages/Tables/Tables";
+import Menu from "@/pages/Menu/Menu";
 import Dashboard from "@/pages/Dashboard/Dashboard";
-
 import Login from "@/pages/Auth/Login";
 import Register from "@/pages/Auth/Register";
 import ForgotPassword from "@/pages/Auth/ForgotPassword";
 import ResetPassword from "@/pages/Auth/ResetPassword";
 import VerifyEmail from "@/pages/Auth/VerifyEmail";
+import Staff from "@/pages/Staff/Staff";
 
 function PlaceholderPage({
   title,
@@ -64,6 +71,7 @@ function AppRoutes() {
         path="/verify-email"
         element={<VerifyEmail />}
       />
+      <Route path="/menu" element={<Menu />} />
 
       {/* ================= PROTECTED APP ================= */}
 
@@ -75,11 +83,14 @@ function AppRoutes() {
           />
 
           <Route
-            path="/restaurants"
-            element={
-              <PlaceholderPage title="Restaurants" />
-            }
-          />
+  path="/restaurants"
+  element={<Restaurants />}
+/>
+
+<Route
+  path="/restaurants/:id"
+  element={<RestaurantDetailsPage />}
+/>
 
           <Route
             path="/branches"
@@ -87,6 +98,26 @@ function AppRoutes() {
               <PlaceholderPage title="Branches" />
             }
           />
+
+            <Route
+  path="/dashboard"
+  element={<Dashboard />}
+/>
+
+<Route
+  path="/restaurants"
+  element={<Restaurants />}
+/>
+
+<Route
+  path="/restaurants/:id"
+  element={<RestaurantDetailsPage />}
+/>
+
+<Route
+  path="/restaurants/:id/edit"
+  element={<EditRestaurantPage />}
+/>
 
           <Route
             path="/floors"
@@ -126,6 +157,21 @@ function AppRoutes() {
             }
           />
 
+            <Route
+  path="/floors"
+  element={<Floors />}
+/>
+
+<Route
+  path="/floors/:floorId"
+  element={<FloorDetails />}
+/>
+
+<Route
+  path="/tables"
+  element={<Tables />}
+/>
+
           <Route
             path="/kitchen"
             element={
@@ -162,6 +208,11 @@ function AppRoutes() {
           />
 
           <Route
+  path="/staff"
+  element={<Staff />}
+/>
+
+          <Route
             path="/ai"
             element={
               <PlaceholderPage title="AI Intelligence" />
@@ -174,6 +225,13 @@ function AppRoutes() {
               <PlaceholderPage title="Settings" />
             }
           />
+
+            <Route path="/branches" element={<Branches />} />
+
+<Route
+  path="/branches/:branchId"
+  element={<BranchDetails />}
+/>
 
           <Route
             path="/profile"
