@@ -27,14 +27,20 @@ import type {
 } from "@/types/restaurant.types";
 
 function RestaurantDetailsPage() {
-  const { id } = useParams<{
-    id: string;
-  }>();
+  const { id } =
+    useParams<{
+      id: string;
+    }>();
 
-  const navigate = useNavigate();
+  const navigate =
+    useNavigate();
 
-  const [restaurant, setRestaurant] =
-    useState<Restaurant | null>(null);
+  const [
+    restaurant,
+    setRestaurant,
+  ] = useState<Restaurant | null>(
+    null,
+  );
 
   const [loading, setLoading] =
     useState(true);
@@ -45,7 +51,10 @@ function RestaurantDetailsPage() {
   useEffect(() => {
     const loadRestaurant =
       async () => {
-        if (!id) {
+        if (
+          !id ||
+          id === "undefined"
+        ) {
           setError(true);
           setLoading(false);
           return;
@@ -55,22 +64,26 @@ function RestaurantDetailsPage() {
           setLoading(true);
           setError(false);
 
-          const response =
-            await getRestaurantById(id);
-
           const data =
-            (response as any)?.data ??
-            response;
+            await getRestaurantById(
+              id,
+            );
 
           setRestaurant(data);
-        } catch {
+        } catch (err) {
+          console.error(
+            "Failed to load restaurant:",
+            err,
+          );
+
           setError(true);
+          setRestaurant(null);
         } finally {
           setLoading(false);
         }
       };
 
-    loadRestaurant();
+    void loadRestaurant();
   }, [id]);
 
   if (loading) {
@@ -79,7 +92,10 @@ function RestaurantDetailsPage() {
     );
   }
 
-  if (error || !restaurant) {
+  if (
+    error ||
+    !restaurant
+  ) {
     return (
       <ErrorState
         title="Restaurant not found"
@@ -88,7 +104,9 @@ function RestaurantDetailsPage() {
           <button
             type="button"
             onClick={() =>
-              navigate("/restaurants")
+              navigate(
+                "/restaurants",
+              )
             }
             className="rounded-xl bg-[#FF6B35] px-4 py-2 text-sm font-semibold text-white"
           >
@@ -101,11 +119,15 @@ function RestaurantDetailsPage() {
 
   return (
     <div className="space-y-6">
+
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+
         <button
           type="button"
           onClick={() =>
-            navigate("/restaurants")
+            navigate(
+              "/restaurants",
+            )
           }
           className="flex w-fit items-center gap-2 text-sm font-medium text-gray-500 transition hover:text-[#FF6B35]"
         >
@@ -125,11 +147,15 @@ function RestaurantDetailsPage() {
           <Pencil className="h-4 w-4" />
           Edit Restaurant
         </button>
+
       </div>
 
       <RestaurantDetails
-        restaurant={restaurant}
+        restaurant={
+          restaurant
+        }
       />
+
     </div>
   );
 }

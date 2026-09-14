@@ -7,9 +7,6 @@ import {
 
 import { useNavigate } from "react-router-dom";
 
-import { useAuth } from "@/hooks/useAuth";
-import { hasPermission } from "@/utils/permission.utils";
-
 import RestaurantHeader from "@/components/restaurants/RestaurantHeader";
 import RestaurantFilters from "@/components/restaurants/RestaurantFilters";
 import RestaurantTable from "@/components/restaurants/RestaurantTable";
@@ -40,30 +37,9 @@ import type {
 function Restaurants() {
   const navigate = useNavigate();
 
-  // ==========================================
-  // AUTHORIZATION
-  // ==========================================
-
-  const { user } = useAuth();
-
-  const canCreate = hasPermission(
-    user,
-    "restaurant:create",
-  );
-
-  const canUpdate = hasPermission(
-    user,
-    "restaurant:update",
-  );
-
-  const canDelete = hasPermission(
-    user,
-    "restaurant:delete",
-  );
-
-  // ==========================================
-  // STATE
-  // ==========================================
+  /* ==========================================
+     STATE
+  ========================================== */
 
   const [
     restaurants,
@@ -113,9 +89,9 @@ function Restaurants() {
     setDeleteLoading,
   ] = useState(false);
 
-  // ==========================================
-  // LOAD RESTAURANTS
-  // ==========================================
+  /* ==========================================
+     LOAD RESTAURANTS
+  ========================================== */
 
   const loadRestaurants =
     useCallback(async () => {
@@ -126,19 +102,15 @@ function Restaurants() {
         const response =
           await getRestaurants();
 
-        const data =
-          (response as any)?.data ??
-          response;
-
-        const restaurantList =
-          Array.isArray(data)
-            ? data
-            : data.restaurants ?? [];
-
         setRestaurants(
-          restaurantList,
+          response.restaurants,
         );
-      } catch {
+      } catch (err) {
+        console.error(
+          "Failed to load restaurants:",
+          err,
+        );
+
         setError(true);
       } finally {
         setLoading(false);
@@ -146,12 +118,12 @@ function Restaurants() {
     }, []);
 
   useEffect(() => {
-    loadRestaurants();
+    void loadRestaurants();
   }, [loadRestaurants]);
 
-  // ==========================================
-  // FILTERING
-  // ==========================================
+  /* ==========================================
+     FILTERING
+  ========================================== */
 
   const filteredRestaurants =
     useMemo(() => {
@@ -190,27 +162,40 @@ function Restaurants() {
       status,
     ]);
 
-  // ==========================================
-  // CREATE
-  // ==========================================
+  /* ==========================================
+     CREATE
+  ========================================== */
 
   const handleCreate = () => {
-    if (!canCreate) {
-      return;
-    }
+    console.log(
+      "Opening create restaurant dialog",
+    );
 
     setSelectedRestaurant(null);
     setDialogOpen(true);
   };
 
-  // ==========================================
-  // EDIT
-  // ==========================================
+  /* ==========================================
+     EDIT
+  ========================================== */
 
   const handleEdit = (
     restaurant: Restaurant,
   ) => {
-    if (!canUpdate) {
+    console.log(
+      "Editing restaurant:",
+      restaurant,
+    );
+
+    if (
+      !restaurant.id ||
+      restaurant.id === "undefined"
+    ) {
+      console.error(
+        "Restaurant ID is missing:",
+        restaurant,
+      );
+
       return;
     }
 
@@ -221,26 +206,56 @@ function Restaurants() {
     setDialogOpen(true);
   };
 
-  // ==========================================
-  // VIEW
-  // ==========================================
+  /* ==========================================
+     VIEW
+  ========================================== */
 
   const handleView = (
     restaurant: Restaurant,
   ) => {
+    console.log(
+      "Viewing restaurant:",
+      restaurant,
+    );
+
+    if (
+      !restaurant.id ||
+      restaurant.id === "undefined"
+    ) {
+      console.error(
+        "Restaurant ID is missing:",
+        restaurant,
+      );
+
+      return;
+    }
+
     navigate(
       `/restaurants/${restaurant.id}`,
     );
   };
 
-  // ==========================================
-  // DELETE
-  // ==========================================
+  /* ==========================================
+     DELETE
+  ========================================== */
 
   const handleDelete = (
     restaurant: Restaurant,
   ) => {
-    if (!canDelete) {
+    console.log(
+      "Deleting restaurant:",
+      restaurant,
+    );
+
+    if (
+      !restaurant.id ||
+      restaurant.id === "undefined"
+    ) {
+      console.error(
+        "Restaurant ID is missing:",
+        restaurant,
+      );
+
       return;
     }
 
@@ -251,67 +266,75 @@ function Restaurants() {
     setDeleteDialogOpen(true);
   };
 
-  // ==========================================
-  // CREATE / UPDATE SUBMIT
-  // ==========================================
+  /* ==========================================
+     CREATE / UPDATE
+  ========================================== */
 
   const handleSubmit = async (
     data: RestaurantFormValues,
   ) => {
-    if (selectedRestaurant) {
-      if (!canUpdate) {
-        return;
-      }
+    try {
+      console.log(
+        "Submitting restaurant:",
+        data,
+      );
 
-      const updated =
-        await updateRestaurant(
-          selectedRestaurant.id,
-          data,
+      if (selectedRestaurant) {
+        const updated =
+          await updateRestaurant(
+            selectedRestaurant.id,
+            data,
+          );
+
+        console.log(
+          "Restaurant updated:",
+          updated,
         );
 
-      const normalized =
-        (updated as any)?.data ??
-        updated;
+        setRestaurants(
+          (current) =>
+            current.map(
+              (restaurant) =>
+                restaurant.id ===
+                selectedRestaurant.id
+                  ? updated
+                  : restaurant,
+            ),
+        );
+      } else {
+        const created =
+          await createRestaurant(
+            data,
+          );
 
-      setRestaurants(
-        (current) =>
-          current.map(
-            (restaurant) =>
-              restaurant.id ===
-              selectedRestaurant.id
-                ? normalized
-                : restaurant,
-          ),
-      );
-    } else {
-      if (!canCreate) {
-        return;
-      }
-
-      const created =
-        await createRestaurant(
-          data,
+        console.log(
+          "Restaurant created:",
+          created,
         );
 
-      const normalized =
-        (created as any)?.data ??
-        created;
+        setRestaurants(
+          (current) => [
+            created,
+            ...current,
+          ],
+        );
+      }
 
-      setRestaurants(
-        (current) => [
-          normalized,
-          ...current,
-        ],
+      setDialogOpen(false);
+      setSelectedRestaurant(null);
+    } catch (err) {
+      console.error(
+        "Restaurant save failed:",
+        err,
       );
+
+      throw err;
     }
-
-    setDialogOpen(false);
-    setSelectedRestaurant(null);
   };
 
-  // ==========================================
-  // DELETE CONFIRM
-  // ==========================================
+  /* ==========================================
+     DELETE CONFIRM
+  ========================================== */
 
   const handleDeleteConfirm =
     async () => {
@@ -319,12 +342,26 @@ function Restaurants() {
         return;
       }
 
-      if (!canDelete) {
+      if (
+        !restaurantToDelete.id ||
+        restaurantToDelete.id ===
+          "undefined"
+      ) {
+        console.error(
+          "Restaurant ID is missing:",
+          restaurantToDelete,
+        );
+
         return;
       }
 
       try {
         setDeleteLoading(true);
+
+        console.log(
+          "Deleting restaurant ID:",
+          restaurantToDelete.id,
+        );
 
         await deleteRestaurant(
           restaurantToDelete.id,
@@ -341,14 +378,21 @@ function Restaurants() {
 
         setDeleteDialogOpen(false);
         setRestaurantToDelete(null);
+      } catch (err) {
+        console.error(
+          "Restaurant delete failed:",
+          err,
+        );
+
+        throw err;
       } finally {
         setDeleteLoading(false);
       }
     };
 
-  // ==========================================
-  // LOADING
-  // ==========================================
+  /* ==========================================
+     LOADING
+  ========================================== */
 
   if (loading) {
     return (
@@ -356,9 +400,9 @@ function Restaurants() {
     );
   }
 
-  // ==========================================
-  // ERROR
-  // ==========================================
+  /* ==========================================
+     ERROR
+  ========================================== */
 
   if (error) {
     return (
@@ -368,7 +412,9 @@ function Restaurants() {
         action={
           <button
             type="button"
-            onClick={loadRestaurants}
+            onClick={() => {
+              void loadRestaurants();
+            }}
             className="rounded-xl bg-[#FF6B35] px-4 py-2 text-sm font-semibold text-white"
           >
             Try Again
@@ -378,19 +424,21 @@ function Restaurants() {
     );
   }
 
-  // ==========================================
-  // PAGE
-  // ==========================================
+  /* ==========================================
+     PAGE
+  ========================================== */
 
   return (
     <div className="space-y-6">
 
       {/* HEADER */}
+
       <RestaurantHeader
-  onCreate={handleCreate}
-/>
+        onCreate={handleCreate}
+      />
 
       {/* FILTERS */}
+
       <RestaurantFilters
         search={search}
         status={status}
@@ -402,21 +450,24 @@ function Restaurants() {
         }}
       />
 
-        <div className="flex items-center justify-between">
-  <p className="text-sm text-gray-500">
-    Showing{" "}
-    <span className="font-semibold text-gray-900">
-      {filteredRestaurants.length}
-    </span>{" "}
-    of{" "}
-    <span className="font-semibold text-gray-900">
-      {restaurants.length}
-    </span>{" "}
-    restaurants
-  </p>
-</div>
+      {/* COUNT */}
 
-      {/* EMPTY / RESTAURANT LIST */}
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-gray-500">
+          Showing{" "}
+          <span className="font-semibold text-gray-900">
+            {filteredRestaurants.length}
+          </span>{" "}
+          of{" "}
+          <span className="font-semibold text-gray-900">
+            {restaurants.length}
+          </span>{" "}
+          restaurants
+        </p>
+      </div>
+
+      {/* RESTAURANTS */}
+
       {filteredRestaurants.length ===
       0 ? (
         <EmptyState
@@ -432,8 +483,7 @@ function Restaurants() {
           }
           action={
             restaurants.length ===
-              0 &&
-            canCreate && (
+            0 ? (
               <button
                 type="button"
                 onClick={handleCreate}
@@ -441,12 +491,13 @@ function Restaurants() {
               >
                 Add Restaurant
               </button>
-            )
+            ) : undefined
           }
         />
       ) : (
         <>
           {/* DESKTOP */}
+
           <div className="hidden lg:block">
             <RestaurantTable
               restaurants={
@@ -454,11 +505,12 @@ function Restaurants() {
               }
               onView={handleView}
               onEdit={handleEdit}
-onDelete={handleDelete}
+              onDelete={handleDelete}
             />
           </div>
 
           {/* MOBILE / TABLET */}
+
           <div className="grid gap-4 lg:hidden">
             {filteredRestaurants.map(
               (restaurant) => (
@@ -469,7 +521,7 @@ onDelete={handleDelete}
                   }
                   onView={handleView}
                   onEdit={handleEdit}
-onDelete={handleDelete}
+                  onDelete={handleDelete}
                 />
               ),
             )}
@@ -478,25 +530,43 @@ onDelete={handleDelete}
       )}
 
       {/* CREATE / UPDATE DIALOG */}
+
       <RestaurantDialog
         open={dialogOpen}
         restaurant={
           selectedRestaurant
         }
-        onOpenChange={setDialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+
+          if (!open) {
+            setSelectedRestaurant(
+              null,
+            );
+          }
+        }}
         onSubmit={handleSubmit}
       />
 
       {/* DELETE DIALOG */}
+
       <DeleteRestaurantDialog
         open={deleteDialogOpen}
         restaurant={
           restaurantToDelete
         }
         loading={deleteLoading}
-        onOpenChange={
-          setDeleteDialogOpen
-        }
+        onOpenChange={(
+          open,
+        ) => {
+          setDeleteDialogOpen(open);
+
+          if (!open) {
+            setRestaurantToDelete(
+              null,
+            );
+          }
+        }}
         onConfirm={
           handleDeleteConfirm
         }

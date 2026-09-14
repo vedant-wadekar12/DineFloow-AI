@@ -4,7 +4,9 @@ import {
   XCircle,
 } from "lucide-react";
 
-import type { RestaurantStatus } from "@/types/restaurant.types";
+import type {
+  RestaurantStatus,
+} from "@/types/restaurant.types";
 
 interface RestaurantStatusBadgeProps {
   status: RestaurantStatus;
@@ -13,10 +15,11 @@ interface RestaurantStatusBadgeProps {
 function RestaurantStatusBadge({
   status,
 }: RestaurantStatusBadgeProps) {
-  const normalizedStatus = String(status).toUpperCase();
+  const normalizedStatus =
+    String(status).toUpperCase();
 
   const statusConfig: Record<
-    string,
+    RestaurantStatus,
     {
       label: string;
       className: string;
@@ -37,20 +40,23 @@ function RestaurantStatusBadge({
       icon: XCircle,
     },
 
-    PENDING: {
-      label: "Pending",
+    SUSPENDED: {
+      label: "Suspended",
       className:
-        "bg-yellow-50 text-yellow-700 ring-1 ring-inset ring-yellow-600/20",
+        "bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20",
       icon: Clock3,
     },
   };
 
-  const config = statusConfig[normalizedStatus];
+  const config =
+    statusConfig[
+      normalizedStatus as RestaurantStatus
+    ];
 
   if (!config) {
     return (
       <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600">
-        {String(status)}
+        Unknown
       </span>
     );
   }

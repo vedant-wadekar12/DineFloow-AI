@@ -5,6 +5,7 @@ export type RestaurantStatus =
 
 export interface Restaurant {
   id: string;
+
   name: string;
   slug: string;
   description?: string;

@@ -199,11 +199,18 @@ function RestaurantForm({
       setServerError("");
       await onSubmit(data);
     } catch (error: any) {
-      setServerError(
-        error?.response?.data?.message ||
-          "Unable to save restaurant. Please try again.",
-      );
-    }
+  console.error(
+    "Restaurant form error:",
+    error,
+  );
+
+  setServerError(
+    error?.response?.data?.message ||
+      error?.response?.data?.error ||
+      error?.message ||
+      "Unable to save restaurant. Please try again.",
+  );
+}
   };
 
   return (

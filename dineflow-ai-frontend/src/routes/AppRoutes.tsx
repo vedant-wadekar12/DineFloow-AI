@@ -3,25 +3,53 @@ import {
   Route,
   Routes,
 } from "react-router-dom";
-import EditRestaurantPage from "@/pages/Restaurants/EditRestaurantPage";
-import Restaurants from "@/pages/Restaurants/Restaurants";
-import RestaurantDetailsPage from "@/pages/Restaurants/RestaurantDetailsPage";
+
 import ProtectedRoute from "./ProtectedRoute";
+
 import DashboardLayout from "@/layouts/DashboardLayout";
-import Branches from "@/pages/Branches/Branches";
-import BranchDetails from "@/pages/Branches/BranchDetails";
-import Floors from "@/pages/Floors/Floors";
-import FloorDetails from "@/pages/Floors/FloorDetails";
-import Tables from "@/pages/Tables/Tables";
-import Menu from "@/pages/Menu/Menu";
-import Dashboard from "@/pages/Dashboard/Dashboard";
+
+// Auth
 import Login from "@/pages/Auth/Login";
 import Register from "@/pages/Auth/Register";
 import ForgotPassword from "@/pages/Auth/ForgotPassword";
 import ResetPassword from "@/pages/Auth/ResetPassword";
 import VerifyEmail from "@/pages/Auth/VerifyEmail";
+
+// Dashboard
+import Dashboard from "@/pages/Dashboard/Dashboard";
+
+// Restaurants
+import Restaurants from "@/pages/Restaurants/Restaurants";
+import RestaurantDetailsPage from "@/pages/Restaurants/RestaurantDetailsPage";
+import EditRestaurantPage from "@/pages/Restaurants/EditRestaurantPage";
+
+// Branches
+import Branches from "@/pages/Branches/Branches";
+import BranchDetails from "@/pages/Branches/BranchDetails";
+
+// Floors
+import Floors from "@/pages/Floors/Floors";
+import FloorDetails from "@/pages/Floors/FloorDetails";
+
+// Tables
+import Tables from "@/pages/Tables/Tables";
+
+// Menu
+import Menu from "@/pages/Menu/Menu";
+
+// Staff
 import Staff from "@/pages/Staff/Staff";
 
+// Inventory
+import Inventory from "@/pages/Inventory/Inventory";
+
+// Orders
+import Orders from "@/pages/Orders/Orders";
+
+/**
+ * Placeholder page for modules
+ * that are not implemented yet.
+ */
 function PlaceholderPage({
   title,
 }: {
@@ -44,18 +72,56 @@ function PlaceholderPage({
   );
 }
 
+function NotFoundPage() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-[#FFFDF8] p-6">
+      <div className="text-center">
+        <p className="text-7xl font-bold text-[#FF6B35]">
+          404
+        </p>
+
+        <h1 className="mt-4 text-2xl font-bold text-gray-900">
+          Page not found
+        </h1>
+
+        <p className="mt-2 text-gray-500">
+          The page you're looking for doesn't exist.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function AppRoutes() {
   return (
     <Routes>
-      {/* ================= PUBLIC ================= */}
+      {/* =====================================================
+          PUBLIC ROUTES
+      ===================================================== */}
 
-      <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route
+        path="/"
+        element={
+          <Navigate
+            to="/login"
+            replace
+          />
+        }
+      />
 
-      {/* ================= AUTH ================= */}
+      {/* =====================================================
+          AUTH ROUTES
+      ===================================================== */}
 
-      <Route path="/login" element={<Login />} />
+      <Route
+        path="/login"
+        element={<Login />}
+      />
 
-      <Route path="/register" element={<Register />} />
+      <Route
+        path="/register"
+        element={<Register />}
+      />
 
       <Route
         path="/forgot-password"
@@ -71,198 +137,232 @@ function AppRoutes() {
         path="/verify-email"
         element={<VerifyEmail />}
       />
-      <Route path="/menu" element={<Menu />} />
 
-      {/* ================= PROTECTED APP ================= */}
+      {/* =====================================================
+          PROTECTED APPLICATION
+      ===================================================== */}
 
       <Route element={<ProtectedRoute />}>
         <Route element={<DashboardLayout />}>
+
+          {/* =================================================
+              DASHBOARD
+          ================================================= */}
+
           <Route
             path="/dashboard"
             element={<Dashboard />}
           />
 
-          <Route
-  path="/restaurants"
-  element={<Restaurants />}
-/>
+          {/* =================================================
+              RESTAURANTS
+              
+              IMPORTANT:
+              Put /restaurants/:id/edit BEFORE /restaurants/:id
+              ================================================= */}
 
-<Route
-  path="/restaurants/:id"
-  element={<RestaurantDetailsPage />}
-/>
+          <Route
+            path="/restaurants"
+            element={<Restaurants />}
+          />
+
+          <Route
+            path="/restaurants/:id/edit"
+            element={<EditRestaurantPage />}
+          />
+
+          <Route
+            path="/restaurants/:id"
+            element={<RestaurantDetailsPage />}
+          />
+
+          {/* =================================================
+              BRANCHES
+          ================================================= */}
 
           <Route
             path="/branches"
-            element={
-              <PlaceholderPage title="Branches" />
-            }
+            element={<Branches />}
           />
 
-            <Route
-  path="/dashboard"
-  element={<Dashboard />}
-/>
+          <Route
+            path="/branches/:branchId"
+            element={<BranchDetails />}
+          />
 
-<Route
-  path="/restaurants"
-  element={<Restaurants />}
-/>
-
-<Route
-  path="/restaurants/:id"
-  element={<RestaurantDetailsPage />}
-/>
-
-<Route
-  path="/restaurants/:id/edit"
-  element={<EditRestaurantPage />}
-/>
+          {/* =================================================
+              FLOORS
+          ================================================= */}
 
           <Route
             path="/floors"
-            element={
-              <PlaceholderPage title="Floors" />
-            }
+            element={<Floors />}
           />
+
+          <Route
+            path="/floors/:floorId"
+            element={<FloorDetails />}
+          />
+
+          {/* =================================================
+              TABLES
+          ================================================= */}
 
           <Route
             path="/tables"
-            element={
-              <PlaceholderPage title="Tables" />
-            }
+            element={<Tables />}
           />
+
+          {/* =================================================
+              MENU
+          ================================================= */}
 
           <Route
             path="/menu"
-            element={<PlaceholderPage title="Menu" />}
+            element={<Menu />}
           />
+
+          {/* =================================================
+              STAFF
+          ================================================= */}
 
           <Route
             path="/staff"
-            element={<PlaceholderPage title="Staff" />}
+            element={<Staff />}
           />
+
+          {/* =================================================
+              INVENTORY
+          ================================================= */}
 
           <Route
             path="/inventory"
-            element={
-              <PlaceholderPage title="Inventory" />
-            }
+            element={<Inventory />}
           />
+
+          {/* =================================================
+              ORDERS
+          ================================================= */}
 
           <Route
             path="/orders"
-            element={
-              <PlaceholderPage title="Orders" />
-            }
+            element={<Orders />}
           />
 
-            <Route
-  path="/floors"
-  element={<Floors />}
-/>
-
-<Route
-  path="/floors/:floorId"
-  element={<FloorDetails />}
-/>
-
-<Route
-  path="/tables"
-  element={<Tables />}
-/>
+          {/* =================================================
+              KITCHEN
+          ================================================= */}
 
           <Route
             path="/kitchen"
             element={
-              <PlaceholderPage title="Kitchen" />
+              <PlaceholderPage
+                title="Kitchen"
+              />
             }
           />
+
+          {/* =================================================
+              BILLING
+          ================================================= */}
 
           <Route
             path="/billing"
             element={
-              <PlaceholderPage title="Billing" />
+              <PlaceholderPage
+                title="Billing"
+              />
             }
           />
+
+          {/* =================================================
+              PAYMENTS
+          ================================================= */}
 
           <Route
             path="/payments"
             element={
-              <PlaceholderPage title="Payments" />
+              <PlaceholderPage
+                title="Payments"
+              />
             }
           />
+
+          {/* =================================================
+              ANALYTICS
+          ================================================= */}
 
           <Route
             path="/analytics"
             element={
-              <PlaceholderPage title="Analytics" />
+              <PlaceholderPage
+                title="Analytics"
+              />
             }
           />
+
+          {/* =================================================
+              NOTIFICATIONS
+          ================================================= */}
 
           <Route
             path="/notifications"
             element={
-              <PlaceholderPage title="Notifications" />
+              <PlaceholderPage
+                title="Notifications"
+              />
             }
           />
 
-          <Route
-  path="/staff"
-  element={<Staff />}
-/>
+          {/* =================================================
+              AI
+          ================================================= */}
 
           <Route
             path="/ai"
             element={
-              <PlaceholderPage title="AI Intelligence" />
+              <PlaceholderPage
+                title="AI Intelligence"
+              />
             }
           />
+
+          {/* =================================================
+              SETTINGS
+          ================================================= */}
 
           <Route
             path="/settings"
             element={
-              <PlaceholderPage title="Settings" />
+              <PlaceholderPage
+                title="Settings"
+              />
             }
           />
 
-            <Route path="/branches" element={<Branches />} />
-
-<Route
-  path="/branches/:branchId"
-  element={<BranchDetails />}
-/>
+          {/* =================================================
+              PROFILE
+          ================================================= */}
 
           <Route
             path="/profile"
             element={
-              <PlaceholderPage title="Profile" />
+              <PlaceholderPage
+                title="Profile"
+              />
             }
           />
+
         </Route>
       </Route>
 
-      {/* ================= 404 ================= */}
+      {/* =====================================================
+          404
+      ===================================================== */}
 
       <Route
         path="*"
-        element={
-          <div className="flex min-h-screen items-center justify-center bg-[#FFFDF8] p-6">
-            <div className="text-center">
-              <p className="text-7xl font-bold text-[#FF6B35]">
-                404
-              </p>
-
-              <h1 className="mt-4 text-2xl font-bold text-gray-900">
-                Page not found
-              </h1>
-
-              <p className="mt-2 text-gray-500">
-                The page you're looking for doesn't exist.
-              </p>
-            </div>
-          </div>
-        }
+        element={<NotFoundPage />}
       />
     </Routes>
   );
