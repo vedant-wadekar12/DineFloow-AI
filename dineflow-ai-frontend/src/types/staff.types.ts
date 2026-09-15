@@ -28,6 +28,8 @@ export interface StaffMember {
 }
 
 export interface CreateStaffData {
+  restaurantId: string;
+
   firstName: string;
   lastName: string;
 

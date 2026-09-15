@@ -5,6 +5,7 @@ import { BrowserRouter } from "react-router-dom";
 import "./index.css";
 
 import { AuthProvider } from "@/context/AuthContext";
+import { RestaurantProvider } from "@/context/RestaurantContext";
 import AppRoutes from "@/routes/AppRoutes";
 
 createRoot(
@@ -13,7 +14,9 @@ createRoot(
   <StrictMode>
     <BrowserRouter>
       <AuthProvider>
-        <AppRoutes />
+        <RestaurantProvider>
+          <AppRoutes />
+        </RestaurantProvider>
       </AuthProvider>
     </BrowserRouter>
   </StrictMode>,

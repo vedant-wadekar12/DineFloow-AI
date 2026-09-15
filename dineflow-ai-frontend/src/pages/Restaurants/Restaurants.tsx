@@ -34,8 +34,17 @@ import type {
   RestaurantFormValues,
 } from "@/components/restaurants/RestaurantForm";
 
+import { useRestaurant } from "@/context/RestaurantContext";
+
 function Restaurants() {
   const navigate = useNavigate();
+
+  /* ==========================================
+     RESTAURANT CONTEXT
+  ========================================== */
+
+  const { setSelectedRestaurantId } =
+    useRestaurant();
 
   /* ==========================================
      STATE
@@ -163,7 +172,7 @@ function Restaurants() {
     ]);
 
   /* ==========================================
-     CREATE
+     CREATE DIALOG
   ========================================== */
 
   const handleCreate = () => {
@@ -279,6 +288,10 @@ function Restaurants() {
         data,
       );
 
+      /* ========================================
+         UPDATE EXISTING RESTAURANT
+      ======================================== */
+
       if (selectedRestaurant) {
         const updated =
           await updateRestaurant(
@@ -291,17 +304,27 @@ function Restaurants() {
           updated,
         );
 
+        const normalized =
+          (updated as any)?.data ??
+          updated;
+
         setRestaurants(
           (current) =>
             current.map(
               (restaurant) =>
                 restaurant.id ===
                 selectedRestaurant.id
-                  ? updated
+                  ? normalized
                   : restaurant,
             ),
         );
-      } else {
+      }
+
+      /* ========================================
+         CREATE NEW RESTAURANT
+      ======================================== */
+
+      else {
         const created =
           await createRestaurant(
             data,
@@ -312,13 +335,44 @@ function Restaurants() {
           created,
         );
 
+        const normalized =
+          (created as any)?.data ??
+          created;
+
+        /*
+         * Add newly created restaurant
+         * to the restaurant list.
+         */
         setRestaurants(
           (current) => [
-            created,
+            normalized,
             ...current,
           ],
         );
+
+        /*
+         * IMPORTANT:
+         * Automatically select the newly
+         * created restaurant globally.
+         *
+         * This makes it available to:
+         * Menu
+         * Orders
+         * Inventory
+         * Kitchen
+         * Billing
+         * etc.
+         */
+        if (normalized?.id) {
+          setSelectedRestaurantId(
+            normalized.id,
+          );
+        }
       }
+
+      /* ========================================
+         CLOSE DIALOG
+      ======================================== */
 
       setDialogOpen(false);
       setSelectedRestaurant(null);
@@ -375,6 +429,12 @@ function Restaurants() {
                 restaurantToDelete.id,
             ),
         );
+
+        /*
+         * If the deleted restaurant was
+         * currently selected, clear it.
+         */
+        setSelectedRestaurantId(null);
 
         setDeleteDialogOpen(false);
         setRestaurantToDelete(null);

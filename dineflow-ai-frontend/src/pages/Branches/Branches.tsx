@@ -14,6 +14,8 @@ import BranchTable from "@/components/branches/BranchTable";
 import BranchFormDialog from "@/components/branches/BranchFormDialog";
 import DeleteBranchDialog from "@/components/branches/DeleteBranchDialog";
 
+import { useRestaurant } from "@/context/RestaurantContext";
+
 import type {
   Branch,
   CreateBranchData,
@@ -21,18 +23,25 @@ import type {
 
 import * as branchService from "@/services/branches/branch.service";
 
+const SELECTED_BRANCH_KEY =
+  "dineflow_selected_branch";
+
 export default function Branches() {
   const navigate = useNavigate();
 
   /*
-   * Replace this with the currently selected
-   * restaurant from your restaurant context/
-   * selector when available.
+   * Get the currently selected restaurant
+   * from RestaurantContext.
+   *
+   * RestaurantContext stores the ID using:
+   *
+   * dineflow_selected_restaurant_id
    */
+  const { selectedRestaurantId } =
+    useRestaurant();
+
   const restaurantId =
-    localStorage.getItem(
-      "dineflow_selected_restaurant",
-    ) || "";
+    selectedRestaurantId ?? "";
 
   const [branches, setBranches] =
     useState<Branch[]>([]);
@@ -62,17 +71,28 @@ export default function Branches() {
     useState(false);
 
   const loadBranches = async () => {
+    if (!restaurantId) {
+      setBranches([]);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
 
       const data =
         await branchService.getBranches(
-          restaurantId || undefined,
+          restaurantId,
         );
 
       setBranches(data);
-    } catch {
+    } catch (error) {
+      console.error(
+        "Failed to load branches:",
+        error,
+      );
+
       setError(
         "Unable to load branches. Please try again.",
       );
@@ -106,17 +126,28 @@ export default function Branches() {
         branch.status === status;
 
       return Boolean(
-        matchesSearch && matchesStatus,
+        matchesSearch &&
+          matchesStatus,
       );
     });
   }, [branches, search, status]);
 
   const handleCreate = () => {
+    if (!restaurantId) {
+      setError(
+        "Please select a restaurant first.",
+      );
+
+      return;
+    }
+
     setEditingBranch(null);
     setFormOpen(true);
   };
 
-  const handleEdit = (branch: Branch) => {
+  const handleEdit = (
+    branch: Branch,
+  ) => {
     setEditingBranch(branch);
     setFormOpen(true);
   };
@@ -124,8 +155,17 @@ export default function Branches() {
   const handleSubmit = async (
     data: CreateBranchData,
   ) => {
+    if (!restaurantId) {
+      setError(
+        "Please select a restaurant first.",
+      );
+
+      return;
+    }
+
     try {
       setActionLoading(true);
+      setError(null);
 
       if (editingBranch) {
         await branchService.updateBranch(
@@ -134,7 +174,10 @@ export default function Branches() {
         );
       } else {
         await branchService.createBranch(
-          data,
+          {
+            ...data,
+            restaurantId,
+          },
         );
       }
 
@@ -142,7 +185,12 @@ export default function Branches() {
       setEditingBranch(null);
 
       await loadBranches();
-    } catch {
+    } catch (error) {
+      console.error(
+        "Failed to save branch:",
+        error,
+      );
+
       setError(
         "Unable to save the branch. Please try again.",
       );
@@ -156,15 +204,43 @@ export default function Branches() {
 
     try {
       setActionLoading(true);
+      setError(null);
 
       await branchService.deleteBranch(
         deleteBranch.id,
       );
 
+      /*
+       * If the deleted branch was selected,
+       * remove it from localStorage.
+       */
+      const selectedBranchId =
+        localStorage.getItem(
+          SELECTED_BRANCH_KEY,
+        );
+
+      if (
+        selectedBranchId ===
+        deleteBranch.id
+      ) {
+        localStorage.removeItem(
+          SELECTED_BRANCH_KEY,
+        );
+
+        localStorage.removeItem(
+          "dineflow_selected_floor",
+        );
+      }
+
       setDeleteBranch(null);
 
       await loadBranches();
-    } catch {
+    } catch (error) {
+      console.error(
+        "Failed to delete branch:",
+        error,
+      );
+
       setError(
         "Unable to delete the branch.",
       );
@@ -178,6 +254,7 @@ export default function Branches() {
   ) => {
     try {
       setActionLoading(true);
+      setError(null);
 
       await branchService.updateBranchStatus(
         branch.id,
@@ -187,7 +264,12 @@ export default function Branches() {
       );
 
       await loadBranches();
-    } catch {
+    } catch (error) {
+      console.error(
+        "Failed to update branch status:",
+        error,
+      );
+
       setError(
         "Unable to update branch status.",
       );
@@ -196,13 +278,57 @@ export default function Branches() {
     }
   };
 
+  /*
+   * Select branch.
+   *
+   * Floors.tsx will use this selected
+   * branch when loading floors.
+   */
+  const handleView = (
+    branch: Branch,
+  ) => {
+    if (
+      !branch.id ||
+      branch.id === "undefined"
+    ) {
+      console.error(
+        "Branch ID is missing:",
+        branch,
+      );
+
+      return;
+    }
+
+    localStorage.setItem(
+      SELECTED_BRANCH_KEY,
+      branch.id,
+    );
+
+    /*
+     * A new branch selection must clear
+     * the previously selected floor.
+     */
+    localStorage.removeItem(
+      "dineflow_selected_floor",
+    );
+
+    navigate(
+      `/floors?branchId=${encodeURIComponent(
+        branch.id,
+      )}`,
+    );
+  };
+
   if (loading) {
     return (
       <LoadingState message="Loading branches..." />
     );
   }
 
-  if (error && branches.length === 0) {
+  if (
+    error &&
+    branches.length === 0
+  ) {
     return (
       <ErrorState
         message={error}
@@ -213,7 +339,6 @@ export default function Branches() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
@@ -229,7 +354,9 @@ export default function Branches() {
           <Button
             type="button"
             variant="outline"
-            onClick={() => void loadBranches()}
+            onClick={() =>
+              void loadBranches()
+            }
           >
             <RefreshCw className="mr-2 h-4 w-4" />
             Refresh
@@ -245,17 +372,16 @@ export default function Branches() {
         </div>
       </div>
 
-      {/* Error */}
       {error && (
         <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
           {error}
         </div>
       )}
 
-      {/* Stats */}
-      <BranchStats branches={branches} />
+      <BranchStats
+        branches={branches}
+      />
 
-      {/* Filters */}
       <div className="rounded-xl border bg-card p-4">
         <BranchFilters
           search={search}
@@ -265,8 +391,8 @@ export default function Branches() {
         />
       </div>
 
-      {/* Content */}
-      {filteredBranches.length === 0 ? (
+      {filteredBranches.length ===
+      0 ? (
         <EmptyState
           title={
             branches.length === 0
@@ -293,9 +419,7 @@ export default function Branches() {
       ) : (
         <BranchTable
           branches={filteredBranches}
-          onView={(branch) =>
-            navigate(`/branches/${branch.id}`)
-          }
+          onView={handleView}
           onEdit={handleEdit}
           onDelete={setDeleteBranch}
           onToggleStatus={
@@ -304,7 +428,6 @@ export default function Branches() {
         />
       )}
 
-      {/* Create / Edit */}
       <BranchFormDialog
         open={formOpen}
         branch={editingBranch}
@@ -314,7 +437,6 @@ export default function Branches() {
         onSubmit={handleSubmit}
       />
 
-      {/* Delete */}
       <DeleteBranchDialog
         open={Boolean(deleteBranch)}
         branch={deleteBranch}

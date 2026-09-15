@@ -25,6 +25,8 @@ import RestaurantTable from "@/components/tables/RestaurantTable";
 import TableFormDialog from "@/components/tables/TableFormDialog";
 import DeleteTableDialog from "@/components/tables/DeleteTableDialog";
 
+import { useRestaurant } from "@/context/RestaurantContext";
+
 import type {
   RestaurantTable as RestaurantTableType,
   CreateTableData,
@@ -32,27 +34,55 @@ import type {
 
 import * as tableService from "@/services/tables/table.service";
 
+const SELECTED_BRANCH_KEY =
+  "dineflow_selected_branch";
+
+const SELECTED_FLOOR_KEY =
+  "dineflow_selected_floor";
+
 export default function Tables() {
   const [searchParams] =
     useSearchParams();
 
+  const { selectedRestaurantId } =
+    useRestaurant();
+
+  const restaurantId =
+    selectedRestaurantId ?? "";
+
+  /*
+   * Prefer floorId from URL.
+   * Fall back to localStorage.
+   */
+  const urlFloorId =
+    searchParams.get("floorId");
+
   const floorId =
-    searchParams.get(
-      "floorId",
-    ) ||
+    urlFloorId ||
     localStorage.getItem(
-      "dineflow_selected_floor",
+      SELECTED_FLOOR_KEY,
     ) ||
     "";
 
+  /*
+   * Keep URL-selected floor
+   * synchronized with localStorage.
+   */
+  useEffect(() => {
+    if (
+      urlFloorId &&
+      urlFloorId !== "undefined"
+    ) {
+      localStorage.setItem(
+        SELECTED_FLOOR_KEY,
+        urlFloorId,
+      );
+    }
+  }, [urlFloorId]);
+
   const branchId =
     localStorage.getItem(
-      "dineflow_selected_branch",
-    ) || "";
-
-  const restaurantId =
-    localStorage.getItem(
-      "dineflow_selected_restaurant",
+      SELECTED_BRANCH_KEY,
     ) || "";
 
   const [tables, setTables] =
@@ -108,7 +138,12 @@ export default function Tables() {
         );
 
       setTables(data);
-    } catch {
+    } catch (error) {
+      console.error(
+        "Failed to load tables:",
+        error,
+      );
+
       setError(
         "Unable to load tables.",
       );
@@ -144,8 +179,8 @@ export default function Tables() {
 
       return Boolean(
         matchesSearch &&
-        matchesStatus &&
-        matchesType,
+          matchesStatus &&
+          matchesType,
       );
     });
   }, [
@@ -155,11 +190,65 @@ export default function Tables() {
     type,
   ]);
 
+  const handleCreate = () => {
+    if (!restaurantId) {
+      setError(
+        "Please select a restaurant first.",
+      );
+
+      return;
+    }
+
+    if (!branchId) {
+      setError(
+        "Please select a branch first.",
+      );
+
+      return;
+    }
+
+    if (!floorId) {
+      setError(
+        "Please select a floor first.",
+      );
+
+      return;
+    }
+
+    setEditingTable(null);
+    setFormOpen(true);
+  };
+
   const handleSubmit = async (
     data: CreateTableData,
   ) => {
+    if (!restaurantId) {
+      setError(
+        "Please select a restaurant first.",
+      );
+
+      return;
+    }
+
+    if (!branchId) {
+      setError(
+        "Please select a branch first.",
+      );
+
+      return;
+    }
+
+    if (!floorId) {
+      setError(
+        "Please select a floor first.",
+      );
+
+      return;
+    }
+
     try {
       setActionLoading(true);
+      setError(null);
 
       if (editingTable) {
         await tableService.updateTable(
@@ -168,7 +257,12 @@ export default function Tables() {
         );
       } else {
         await tableService.createTable(
-          data,
+          {
+            ...data,
+            restaurantId,
+            branchId,
+            floorId,
+          },
         );
       }
 
@@ -176,7 +270,12 @@ export default function Tables() {
       setEditingTable(null);
 
       await loadTables();
-    } catch {
+    } catch (error) {
+      console.error(
+        "Failed to save table:",
+        error,
+      );
+
       setError(
         "Unable to save table.",
       );
@@ -190,6 +289,7 @@ export default function Tables() {
 
     try {
       setActionLoading(true);
+      setError(null);
 
       await tableService.deleteTable(
         deleteTable.id,
@@ -198,7 +298,12 @@ export default function Tables() {
       setDeleteTable(null);
 
       await loadTables();
-    } catch {
+    } catch (error) {
+      console.error(
+        "Failed to delete table:",
+        error,
+      );
+
       setError(
         "Unable to delete table.",
       );
@@ -253,10 +358,7 @@ export default function Tables() {
 
           <Button
             type="button"
-            onClick={() => {
-              setEditingTable(null);
-              setFormOpen(true);
-            }}
+            onClick={handleCreate}
             disabled={!floorId}
           >
             <Plus className="mr-2 h-4 w-4" />
@@ -310,8 +412,8 @@ export default function Tables() {
                 tables.length === 0 ? (
                   <Button
                     type="button"
-                    onClick={() =>
-                      setFormOpen(true)
+                    onClick={
+                      handleCreate
                     }
                   >
                     <Plus className="mr-2 h-4 w-4" />
@@ -335,6 +437,7 @@ export default function Tables() {
                 setEditingTable(
                   table,
                 );
+
                 setFormOpen(true);
               }}
               onDelete={

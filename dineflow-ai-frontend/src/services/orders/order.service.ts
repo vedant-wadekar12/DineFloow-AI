@@ -7,78 +7,114 @@ import type {
   UpdateOrderStatusData,
 } from "@/types/order.types";
 
+interface ApiResponse<T> {
+  success?: boolean;
+  message?: string;
+  data?: T;
+}
+
+function unwrap<T>(responseData: T | ApiResponse<T>): T {
+  if (
+    responseData &&
+    typeof responseData === "object" &&
+    "data" in responseData
+  ) {
+    const data = (responseData as ApiResponse<T>).data;
+
+    if (data !== undefined) {
+      return data;
+    }
+  }
+
+  return responseData as T;
+}
+
 export async function getOrders(
   restaurantId?: string,
-) {
-  const response =
-    await apiClient.get<Order[]>(
-      "/orders",
-      {
-        params: restaurantId
-          ? { restaurantId }
-          : undefined,
-      },
-    );
+): Promise<Order[]> {
+  const response = await apiClient.get<
+    Order[] | ApiResponse<Order[]> | { orders?: Order[] }
+  >("/orders", {
+    params: restaurantId
+      ? { restaurantId }
+      : undefined,
+  });
 
-  return response.data;
+  const data = response.data;
+
+  if (Array.isArray(data)) {
+    return data;
+  }
+
+  if (
+    data &&
+    typeof data === "object" &&
+    "data" in data &&
+    Array.isArray(data.data)
+  ) {
+    return data.data;
+  }
+
+  if (
+    data &&
+    typeof data === "object" &&
+    "orders" in data &&
+    Array.isArray(data.orders)
+  ) {
+    return data.orders;
+  }
+
+  return [];
 }
 
 export async function getOrderById(
   orderId: string,
-) {
-  const response =
-    await apiClient.get<Order>(
-      `/orders/${orderId}`,
-    );
+): Promise<Order> {
+  const response = await apiClient.get<
+    Order | ApiResponse<Order>
+  >(`/orders/${orderId}`);
 
-  return response.data;
+  return unwrap(response.data);
 }
 
 export async function createOrder(
   data: CreateOrderData,
-) {
-  const response =
-    await apiClient.post<Order>(
-      "/orders",
-      data,
-    );
+): Promise<Order> {
+  const response = await apiClient.post<
+    Order | ApiResponse<Order>
+  >("/orders", data);
 
-  return response.data;
+  return unwrap(response.data);
 }
 
 export async function updateOrder(
   orderId: string,
   data: UpdateOrderData,
-) {
-  const response =
-    await apiClient.patch<Order>(
-      `/orders/${orderId}`,
-      data,
-    );
+): Promise<Order> {
+  const response = await apiClient.patch<
+    Order | ApiResponse<Order>
+  >(`/orders/${orderId}`, data);
 
-  return response.data;
+  return unwrap(response.data);
 }
 
 export async function updateOrderStatus(
   orderId: string,
   data: UpdateOrderStatusData,
-) {
-  const response =
-    await apiClient.patch<Order>(
-      `/orders/${orderId}/status`,
-      data,
-    );
+): Promise<Order> {
+  const response = await apiClient.patch<
+    Order | ApiResponse<Order>
+  >(`/orders/${orderId}/status`, data);
 
-  return response.data;
+  return unwrap(response.data);
 }
 
 export async function cancelOrder(
   orderId: string,
-) {
-  const response =
-    await apiClient.patch<Order>(
-      `/orders/${orderId}/cancel`,
-    );
+): Promise<Order> {
+  const response = await apiClient.patch<
+    Order | ApiResponse<Order>
+  >(`/orders/${orderId}/cancel`);
 
-  return response.data;
+  return unwrap(response.data);
 }

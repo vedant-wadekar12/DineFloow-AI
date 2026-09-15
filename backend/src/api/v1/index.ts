@@ -1,5 +1,7 @@
 import { Router } from "express";
 
+
+
 import { ApiResponse } from "../../common/responses";
 
 import authRoutes from "../../modules/auth/routes/auth.routes";
@@ -30,6 +32,22 @@ import categoryRoutes from "../../modules/categories/routes/category.routes";
 
 import menuItemRoutes from "../../modules/menu/routes/menu-item.routes";
 
+import qrRoutes from "../../modules/qr/routes/qr.routes";
+
+import employeeRoutes from "../../modules/employees/routes/employee.routes";
+
+import customerRoutes from "../../modules/customers/routes/customer.routes";
+
+import menuVariantRoutes
+  from "../../modules/menu/routes/menu-variant.routes";
+
+import menuAddonRoutes
+  from "../../modules/menu/routes/menu-addon.routes";
+
+import menuComboRoutes
+  from "../../modules/menu/routes/menu-combo.routes";
+
+
 const router = Router();
 
 router.get("/health", (_req, res) => {
@@ -56,9 +74,26 @@ router.use("/users", userRoutes);
 
 router.use("/auth", passwordResetRoutes);
 
+router.use("/customers", customerRoutes);
+
 router.use(
   "/role-permissions",
   rolePermissionRoutes
+);
+
+router.use(
+  "/menu-variants",
+  menuVariantRoutes
+);
+
+router.use(
+  "/menu-addons",
+  menuAddonRoutes
+);
+
+router.use(
+  "/menu-combos",
+  menuComboRoutes
 );
 
 router.use(
@@ -81,10 +116,14 @@ router.use(
   floorRoutes
 );
 
+router.use("/qr", qrRoutes);
+
 router.use(
   "/tables",
   tableRoutes
 );
+
+router.use("/employees", employeeRoutes);
 
 router.use(
   "/categories",

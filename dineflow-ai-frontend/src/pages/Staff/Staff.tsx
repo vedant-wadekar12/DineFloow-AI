@@ -19,59 +19,107 @@ import StaffFormDialog from "@/components/staff/StaffFormDialog";
 import StaffDetailsDialog from "@/components/staff/StaffDetailsDialog";
 import DeleteStaffDialog from "@/components/staff/DeleteStaffDialog";
 
+import { useRestaurant } from "@/context/RestaurantContext";
+
 import * as staffService from "@/services/staff/staff.service";
 
 import type {
   StaffMember,
   StaffStats as StaffStatsType,
+  CreateStaffData,
+  UpdateStaffData,
 } from "@/types/staff.types";
 
+const SELECTED_BRANCH_KEY =
+  "dineflow_selected_branch";
+
 export default function Staff() {
-  const [staff, setStaff] =
-    useState<StaffMember[]>([]);
+  const {
+    selectedRestaurantId,
+  } = useRestaurant();
 
-  const [loading, setLoading] =
-    useState(true);
+  const restaurantId =
+    selectedRestaurantId ?? "";
 
-  const [saving, setSaving] =
-    useState(false);
+  const [
+    staff,
+    setStaff,
+  ] = useState<StaffMember[]>([]);
 
-  const [search, setSearch] =
-    useState("");
+  const [
+    loading,
+    setLoading,
+  ] = useState(true);
 
-  const [role, setRole] =
-    useState("");
+  const [
+    saving,
+    setSaving,
+  ] = useState(false);
 
-  const [status, setStatus] =
-    useState("");
+  const [
+    search,
+    setSearch,
+  ] = useState("");
 
-  const [formOpen, setFormOpen] =
-    useState(false);
+  const [
+    role,
+    setRole,
+  ] = useState("");
 
-  const [detailsOpen, setDetailsOpen] =
-    useState(false);
+  const [
+    status,
+    setStatus,
+  ] = useState("");
 
-  const [deleteOpen, setDeleteOpen] =
-    useState(false);
+  const [
+    formOpen,
+    setFormOpen,
+  ] = useState(false);
 
-  const [editingStaff, setEditingStaff] =
-    useState<StaffMember | null>(
-      null,
-    );
+  const [
+    detailsOpen,
+    setDetailsOpen,
+  ] = useState(false);
 
-  const [selectedStaff, setSelectedStaff] =
-    useState<StaffMember | null>(
-      null,
-    );
+  const [
+    deleteOpen,
+    setDeleteOpen,
+  ] = useState(false);
+
+  const [
+    editingStaff,
+    setEditingStaff,
+  ] = useState<StaffMember | null>(
+    null,
+  );
+
+  const [
+    selectedStaff,
+    setSelectedStaff,
+  ] = useState<StaffMember | null>(
+    null,
+  );
 
   const loadStaff = async () => {
+    if (!restaurantId) {
+      setStaff([]);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
 
       const data =
-        await staffService.getStaff();
+        await staffService.getStaff(
+          restaurantId,
+        );
 
-      setStaff(data);
+      setStaff(
+        Array.isArray(data)
+          ? data
+          : [],
+      );
     } catch (error) {
       console.error(
         "Failed to load staff:",
@@ -84,7 +132,7 @@ export default function Staff() {
 
   useEffect(() => {
     void loadStaff();
-  }, []);
+  }, [restaurantId]);
 
   const stats: StaffStatsType =
     useMemo(() => {
@@ -156,9 +204,12 @@ export default function Staff() {
               .toLowerCase();
 
           const searchValue =
-            search.toLowerCase();
+            search
+              .trim()
+              .toLowerCase();
 
           const matchesSearch =
+            !searchValue ||
             fullName.includes(
               searchValue,
             ) ||
@@ -193,18 +244,44 @@ export default function Staff() {
     ]);
 
   const handleSubmit =
-    async (data: any) => {
+    async (
+      data:
+        | CreateStaffData
+        | UpdateStaffData,
+    ) => {
       try {
         setSaving(true);
+
+        const branchId =
+          data.branchId?.trim() ||
+          localStorage.getItem(
+            SELECTED_BRANCH_KEY,
+          ) ||
+          undefined;
 
         if (editingStaff) {
           await staffService.updateStaff(
             editingStaff.id,
-            data,
+            {
+              ...data,
+              branchId,
+            },
           );
         } else {
+          if (!restaurantId) {
+            throw new Error(
+              "No restaurant selected.",
+            );
+          }
+
           await staffService.createStaff(
-            data,
+            {
+              ...data,
+              branchId,
+              restaurantId,
+            } as CreateStaffData & {
+              restaurantId: string;
+            },
           );
         }
 
@@ -224,7 +301,9 @@ export default function Staff() {
 
   const handleDelete =
     async () => {
-      if (!selectedStaff) return;
+      if (!selectedStaff) {
+        return;
+      }
 
       try {
         setSaving(true);
@@ -257,8 +336,6 @@ export default function Staff() {
 
   return (
     <div className="space-y-6 p-6">
-      {/* HEADER */}
-
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
         <div>
           <h1 className="text-3xl font-semibold">
@@ -283,11 +360,7 @@ export default function Staff() {
         </Button>
       </div>
 
-      {/* STATS */}
-
       <StaffStats stats={stats} />
-
-      {/* FILTERS */}
 
       <StaffFilters
         search={search}
@@ -297,8 +370,6 @@ export default function Staff() {
         onRoleChange={setRole}
         onStatusChange={setStatus}
       />
-
-      {/* TABLE */}
 
       <StaffTable
         staff={filteredStaff}
@@ -316,8 +387,6 @@ export default function Staff() {
         }}
       />
 
-      {/* FORM */}
-
       <StaffFormDialog
         open={formOpen}
         staff={editingStaff}
@@ -326,15 +395,11 @@ export default function Staff() {
         onSubmit={handleSubmit}
       />
 
-      {/* DETAILS */}
-
       <StaffDetailsDialog
         open={detailsOpen}
         staff={selectedStaff}
         onOpenChange={setDetailsOpen}
       />
-
-      {/* DELETE */}
 
       <DeleteStaffDialog
         open={deleteOpen}

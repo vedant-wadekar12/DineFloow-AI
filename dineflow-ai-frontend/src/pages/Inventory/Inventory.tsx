@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import LoadingState from "@/components/common/LoadingState";
 import EmptyState from "@/components/common/EmptyState";
 import ErrorState from "@/components/common/ErrorState";
-
+import { useRestaurant } from "@/context/RestaurantContext";
 import InventoryStats from "@/components/inventory/InventoryStats";
 import InventoryFilters from "@/components/inventory/InventoryFilters";
 import InventoryTable from "@/components/inventory/InventoryTable";
@@ -27,6 +27,13 @@ import type {
 } from "@/types/inventory.types";
 
 export default function Inventory() {
+  const {
+  selectedRestaurantId,
+} = useRestaurant();
+
+const restaurantId =
+  selectedRestaurantId ?? "";
+
   const [items, setItems] =
     useState<InventoryItem[]>([]);
 
@@ -78,30 +85,43 @@ export default function Inventory() {
   ] = useState(false);
 
   const loadInventory = async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  if (!restaurantId) {
+    setItems([]);
+    setLoading(false);
+    return;
+  }
 
-      const data =
-        await inventoryService.getInventory();
+  try {
+    setLoading(true);
+    setError(null);
 
-      setItems(
-        Array.isArray(data)
-          ? data
-          : [],
+    const data =
+      await inventoryService.getInventory(
+        restaurantId,
       );
-    } catch {
-      setError(
-        "Unable to load inventory.",
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
+
+    setItems(
+      Array.isArray(data)
+        ? data
+        : [],
+    );
+  } catch (error) {
+    console.error(
+      "Failed to load inventory:",
+      error,
+    );
+
+    setError(
+      "Unable to load inventory.",
+    );
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     void loadInventory();
-  }, []);
+  }, [restaurantId]);
 
   const categories = useMemo(() => {
     return Array.from(

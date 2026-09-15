@@ -88,6 +88,10 @@ export default function Orders() {
     setCancelling,
   ] = useState(false);
 
+  /*
+   * LOAD ORDERS
+   */
+
   const loadOrders = async () => {
     try {
       setLoading(true);
@@ -101,7 +105,12 @@ export default function Orders() {
           ? data
           : [],
       );
-    } catch {
+    } catch (error) {
+      console.error(
+        "Failed to load orders:",
+        error,
+      );
+
       setError(
         "Unable to load orders.",
       );
@@ -113,6 +122,10 @@ export default function Orders() {
   useEffect(() => {
     void loadOrders();
   }, []);
+
+  /*
+   * FILTER ORDERS
+   */
 
   const filteredOrders =
     useMemo(() => {
@@ -148,8 +161,7 @@ export default function Orders() {
 
           const matchesStatus =
             !status ||
-            order.status ===
-              status;
+            order.status === status;
 
           const matchesType =
             !orderType ||
@@ -172,6 +184,10 @@ export default function Orders() {
       orderType,
     ]);
 
+  /*
+   * CREATE ORDER
+   */
+
   const handleCreate = async (
     values: CreateOrderData,
   ) => {
@@ -189,10 +205,23 @@ export default function Orders() {
       ]);
 
       setFormOpen(false);
+    } catch (error) {
+      console.error(
+        "Failed to create order:",
+        error,
+      );
+
+      setError(
+        "Unable to create order.",
+      );
     } finally {
       setSaving(false);
     }
   };
+
+  /*
+   * UPDATE ORDER
+   */
 
   const handleUpdate = async (
     values: UpdateOrderData,
@@ -221,10 +250,23 @@ export default function Orders() {
 
       setFormOpen(false);
       setSelectedOrder(null);
+    } catch (error) {
+      console.error(
+        "Failed to update order:",
+        error,
+      );
+
+      setError(
+        "Unable to update order.",
+      );
     } finally {
       setSaving(false);
     }
   };
+
+  /*
+   * UPDATE STATUS
+   */
 
   const handleStatusUpdate =
     async (
@@ -257,10 +299,23 @@ export default function Orders() {
 
         setStatusDialogOpen(false);
         setSelectedOrder(null);
+      } catch (error) {
+        console.error(
+          "Failed to update order status:",
+          error,
+        );
+
+        setError(
+          "Unable to update order status.",
+        );
       } finally {
         setUpdatingStatus(false);
       }
     };
+
+  /*
+   * CANCEL ORDER
+   */
 
   const handleCancel =
     async () => {
@@ -288,10 +343,23 @@ export default function Orders() {
 
         setCancelDialogOpen(false);
         setSelectedOrder(null);
+      } catch (error) {
+        console.error(
+          "Failed to cancel order:",
+          error,
+        );
+
+        setError(
+          "Unable to cancel order.",
+        );
       } finally {
         setCancelling(false);
       }
     };
+
+  /*
+   * OPEN VIEW
+   */
 
   const openView = (
     order: Order,
@@ -300,12 +368,20 @@ export default function Orders() {
     setDetailsOpen(true);
   };
 
+  /*
+   * OPEN EDIT
+   */
+
   const openEdit = (
     order: Order,
   ) => {
     setSelectedOrder(order);
     setFormOpen(true);
   };
+
+  /*
+   * OPEN STATUS
+   */
 
   const openStatus = (
     order: Order,
@@ -314,12 +390,20 @@ export default function Orders() {
     setStatusDialogOpen(true);
   };
 
+  /*
+   * OPEN CANCEL
+   */
+
   const openCancel = (
     order: Order,
   ) => {
     setSelectedOrder(order);
     setCancelDialogOpen(true);
   };
+
+  /*
+   * LOADING
+   */
 
   if (loading) {
     return (
@@ -328,6 +412,10 @@ export default function Orders() {
       />
     );
   }
+
+  /*
+   * ERROR
+   */
 
   if (error) {
     return (
@@ -340,8 +428,14 @@ export default function Orders() {
     );
   }
 
+  /*
+   * PAGE
+   */
+
   return (
     <div className="space-y-6">
+      {/* HEADER */}
+
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">
@@ -366,9 +460,13 @@ export default function Orders() {
         </Button>
       </div>
 
+      {/* STATS */}
+
       <OrderStats
         orders={orders}
       />
+
+      {/* FILTERS */}
 
       <div className="rounded-xl border bg-card p-4">
         <OrderFilters
@@ -383,6 +481,8 @@ export default function Orders() {
         />
       </div>
 
+      {/* REFRESH */}
+
       <div className="flex justify-end">
         <Button
           type="button"
@@ -395,6 +495,8 @@ export default function Orders() {
           Refresh
         </Button>
       </div>
+
+      {/* ORDERS */}
 
       {filteredOrders.length === 0 ? (
         <EmptyState
@@ -421,6 +523,8 @@ export default function Orders() {
         />
       ) : (
         <>
+          {/* DESKTOP */}
+
           <div className="hidden md:block">
             <OrderTable
               orders={filteredOrders}
@@ -430,6 +534,8 @@ export default function Orders() {
               onCancel={openCancel}
             />
           </div>
+
+          {/* MOBILE */}
 
           <div className="grid gap-4 md:hidden">
             {filteredOrders.map(
@@ -448,6 +554,8 @@ export default function Orders() {
         </>
       )}
 
+      {/* CREATE / EDIT DIALOG */}
+
       <OrderFormDialog
         open={formOpen}
         order={selectedOrder}
@@ -455,7 +563,9 @@ export default function Orders() {
         onOpenChange={setFormOpen}
         onSubmit={async (values) => {
           if (selectedOrder) {
-            await handleUpdate(values);
+            await handleUpdate(
+              values,
+            );
           } else {
             await handleCreate(
               values as CreateOrderData,
@@ -464,11 +574,15 @@ export default function Orders() {
         }}
       />
 
+      {/* DETAILS */}
+
       <OrderDetailsDialog
         open={detailsOpen}
         order={selectedOrder}
         onOpenChange={setDetailsOpen}
       />
+
+      {/* STATUS */}
 
       <UpdateOrderStatusDialog
         open={statusDialogOpen}
@@ -477,8 +591,12 @@ export default function Orders() {
         onOpenChange={
           setStatusDialogOpen
         }
-        onSubmit={handleStatusUpdate}
+        onSubmit={
+          handleStatusUpdate
+        }
       />
+
+      {/* CANCEL */}
 
       <CancelOrderDialog
         open={cancelDialogOpen}

@@ -3,44 +3,41 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import type { MenuCategory } from "@/types/menu.types";
-
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 
-import {
-  Input,
-} from "@/components/ui/input";
-
-import {
-  Button,
-} from "@/components/ui/button";
+import type { MenuCategory } from "@/types/menu.types";
 
 const categorySchema = z.object({
   name: z
     .string()
     .trim()
-    .min(2, "Category name must be at least 2 characters"),
+    .min(2, "Name must be at least 2 characters")
+    .max(100, "Name must not exceed 100 characters"),
 
   description: z
     .string()
+    .trim()
+    .max(500, "Description must not exceed 500 characters")
     .optional(),
 
-  displayOrder: z
-    .coerce
+  sortOrder: z
     .number()
-    .min(0)
+    .int()
+    .min(0, "Sort order cannot be negative")
     .optional(),
-
-  isActive: z.boolean(),
 });
 
-type CategoryFormInput = z.input<typeof categorySchema>;
-type CategoryFormData = z.output<typeof categorySchema>;
+export type CategoryFormData = z.output<typeof categorySchema>;
 
 interface CategoryFormDialogProps {
   open: boolean;
@@ -57,131 +54,131 @@ export default function CategoryFormDialog({
   onOpenChange,
   onSubmit,
 }: CategoryFormDialogProps) {
-  const form = useForm<
-  CategoryFormInput,
-  unknown,
-  CategoryFormData
->({
-  resolver: zodResolver(categorySchema),
+  const form = useForm<CategoryFormData>({
+    resolver: zodResolver(categorySchema),
     defaultValues: {
       name: "",
       description: "",
-      displayOrder: 0,
-      isActive: true,
+      sortOrder: 0,
     },
   });
 
   useEffect(() => {
+    if (!open) return;
+
     if (category) {
       form.reset({
         name: category.name,
         description: category.description ?? "",
-        displayOrder: category.displayOrder ?? 0,
-        isActive: category.isActive,
+        sortOrder: category.sortOrder ?? 0,
       });
     } else {
       form.reset({
         name: "",
         description: "",
-        displayOrder: 0,
-        isActive: true,
+        sortOrder: 0,
       });
     }
-  }, [category, open]);
+  }, [open, category, form]);
 
-  const submit = async (
-    data: CategoryFormData,
-  ) => {
-    await onSubmit(data);
-    form.reset();
+  const handleSubmit = async (data: CategoryFormData) => {
+    await onSubmit({
+      name: data.name.trim(),
+      description: data.description?.trim() || undefined,
+      sortOrder: data.sortOrder,
+    });
   };
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={onOpenChange}
-    >
-      <DialogContent>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[550px]">
         <DialogHeader>
           <DialogTitle>
-            {category
-              ? "Edit Category"
-              : "Create Category"}
+            {category ? "Edit Category" : "Create Category"}
           </DialogTitle>
         </DialogHeader>
 
         <form
-          onSubmit={form.handleSubmit(submit)}
-          className="space-y-4"
+          onSubmit={form.handleSubmit(handleSubmit)}
+          className="space-y-5"
         >
-          <div>
-            <label className="mb-1 block text-sm font-medium">
-              Category Name
-            </label>
+          <div className="space-y-2">
+            <Label htmlFor="category-name">Category Name</Label>
 
             <Input
+              id="category-name"
+              placeholder="Example: Starters"
+              disabled={loading}
               {...form.register("name")}
-              placeholder="e.g. Starters"
             />
 
             {form.formState.errors.name && (
-              <p className="mt-1 text-sm text-red-500">
+              <p className="text-sm text-red-500">
                 {form.formState.errors.name.message}
               </p>
             )}
           </div>
 
-          <div>
-            <label className="mb-1 block text-sm font-medium">
+          <div className="space-y-2">
+            <Label htmlFor="category-description">
               Description
-            </label>
+            </Label>
 
-            <Input
+            <Textarea
+              id="category-description"
+              placeholder="Describe this category..."
+              disabled={loading}
               {...form.register("description")}
-              placeholder="Category description"
             />
+
+            {form.formState.errors.description && (
+              <p className="text-sm text-red-500">
+                {form.formState.errors.description.message}
+              </p>
+            )}
           </div>
 
-          <div>
-            <label className="mb-1 block text-sm font-medium">
-              Display Order
-            </label>
+          <div className="space-y-2">
+            <Label htmlFor="category-sort-order">
+              Sort Order
+            </Label>
 
             <Input
+              id="category-sort-order"
               type="number"
-              {...form.register("displayOrder")}
+              min="0"
+              step="1"
+              disabled={loading}
+              {...form.register("sortOrder", {
+                valueAsNumber: true,
+              })}
             />
+
+            {form.formState.errors.sortOrder && (
+              <p className="text-sm text-red-500">
+                {form.formState.errors.sortOrder.message}
+              </p>
+            )}
           </div>
 
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              {...form.register("isActive")}
-            />
-
-            Active
-          </label>
-
-          <div className="flex justify-end gap-2">
+          <DialogFooter>
             <Button
               type="button"
               variant="outline"
+              disabled={loading}
               onClick={() => onOpenChange(false)}
             >
               Cancel
             </Button>
 
-            <Button
-              type="submit"
-              disabled={loading}
-            >
+            <Button type="submit" disabled={loading}>
               {loading
                 ? "Saving..."
                 : category
                   ? "Update Category"
                   : "Create Category"}
             </Button>
-          </div>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
