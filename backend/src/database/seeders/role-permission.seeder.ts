@@ -30,7 +30,7 @@ export const seedRolePermissions = async (): Promise<void> => {
           },
           {
             upsert: true,
-          }
+          },
         );
 
         continue;
@@ -54,7 +54,7 @@ export const seedRolePermissions = async (): Promise<void> => {
           },
           {
             upsert: true,
-          }
+          },
         );
 
         continue;
@@ -73,9 +73,17 @@ export const seedRolePermissions = async (): Promise<void> => {
           "order:",
           "payment:",
           "report:",
-        ].some((prefix) =>
-          permission.name.startsWith(prefix)
-        )
+          "inventory:",
+          "supplier:create",
+          "supplier:read",
+          "supplier:update",
+          "supplier:delete",
+          "purchase:create",
+          "purchase:read",
+          "purchase:update",
+          "purchase:delete",
+          "purchase:receive",
+        ].some((prefix) => permission.name.startsWith(prefix))
       ) {
         await RolePermission.updateOne(
           {
@@ -90,7 +98,7 @@ export const seedRolePermissions = async (): Promise<void> => {
           },
           {
             upsert: true,
-          }
+          },
         );
 
         continue;
@@ -122,7 +130,7 @@ export const seedRolePermissions = async (): Promise<void> => {
           },
           {
             upsert: true,
-          }
+          },
         );
 
         continue;
@@ -154,7 +162,7 @@ export const seedRolePermissions = async (): Promise<void> => {
           },
           {
             upsert: true,
-          }
+          },
         );
 
         continue;
@@ -165,11 +173,7 @@ export const seedRolePermissions = async (): Promise<void> => {
        */
       if (
         role.name === "CHEF" &&
-        [
-          "menu:read",
-          "order:read",
-          "order:update",
-        ].includes(permission.name)
+        ["menu:read", "order:read", "order:update"].includes(permission.name)
       ) {
         await RolePermission.updateOne(
           {
@@ -184,7 +188,7 @@ export const seedRolePermissions = async (): Promise<void> => {
           },
           {
             upsert: true,
-          }
+          },
         );
 
         continue;
@@ -195,11 +199,7 @@ export const seedRolePermissions = async (): Promise<void> => {
        */
       if (
         role.name === "KITCHEN_STAFF" &&
-        [
-          "menu:read",
-          "order:read",
-          "order:update",
-        ].includes(permission.name)
+        ["menu:read", "order:read", "order:update"].includes(permission.name)
       ) {
         await RolePermission.updateOne(
           {
@@ -214,7 +214,7 @@ export const seedRolePermissions = async (): Promise<void> => {
           },
           {
             upsert: true,
-          }
+          },
         );
       }
     }

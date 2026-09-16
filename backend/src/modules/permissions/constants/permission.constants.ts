@@ -9,6 +9,17 @@ export const PERMISSIONS = {
   ROLE_UPDATE: "role:update",
   ROLE_DELETE: "role:delete",
 
+  SUPPLIER_CREATE: "supplier:create",
+  SUPPLIER_READ: "supplier:read",
+  SUPPLIER_UPDATE: "supplier:update",
+  SUPPLIER_DELETE: "supplier:delete",
+
+  PURCHASE_CREATE: "purchase:create",
+PURCHASE_READ: "purchase:read",
+PURCHASE_UPDATE: "purchase:update",
+PURCHASE_DELETE: "purchase:delete",
+PURCHASE_RECEIVE: "purchase:receive",
+
   RESTAURANT_CREATE: "restaurant:create",
   RESTAURANT_READ: "restaurant:read",
   RESTAURANT_UPDATE: "restaurant:update",
@@ -46,4 +57,9 @@ export const PERMISSIONS = {
   REPORT_READ: "report:read",
 
   SETTINGS_UPDATE: "settings:update",
+
+  INVENTORY_CREATE: "inventory:create",
+  INVENTORY_READ: "inventory:read",
+  INVENTORY_UPDATE: "inventory:update",
+  INVENTORY_DELETE: "inventory:delete",
 } as const;

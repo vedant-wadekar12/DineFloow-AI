@@ -47,6 +47,17 @@ import menuAddonRoutes
 import menuComboRoutes
   from "../../modules/menu/routes/menu-combo.routes";
 
+import inventoryItemRoutes
+  from "../../modules/inventory/routes/inventory-item.routes";
+
+import stockRoutes
+  from "../../modules/inventory/routes/stock.routes";
+
+import menuRecipeRoutes
+  from "../../modules/inventory/routes/menu-recipe.routes";
+
+import supplierRoutes from "../../modules/suppliers/routes/supplier.routes";
+import purchaseRoutes from "../../modules/purchases/routes/purchase.routes";
 
 const router = Router();
 
@@ -76,10 +87,31 @@ router.use("/auth", passwordResetRoutes);
 
 router.use("/customers", customerRoutes);
 
+router.use("/suppliers", supplierRoutes);
+
+router.use("/purchases", purchaseRoutes);
+
 router.use(
   "/role-permissions",
   rolePermissionRoutes
 );
+
+router.use(
+  "/inventory-items",
+  inventoryItemRoutes
+);
+
+router.use(
+  "/stock",
+  stockRoutes
+);
+
+router.use(
+  "/menu-recipes",
+  menuRecipeRoutes
+);
+
+
 
 router.use(
   "/menu-variants",
