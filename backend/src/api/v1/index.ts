@@ -59,6 +59,36 @@ import menuRecipeRoutes
 import supplierRoutes from "../../modules/suppliers/routes/supplier.routes";
 import purchaseRoutes from "../../modules/purchases/routes/purchase.routes";
 
+import cartRoutes from "../../modules/carts/routes/cart.routes";
+
+import orderRoutes from "../../modules/orders/routes/order.routes";
+
+import kitchenRoutes from "../../modules/kitchen/routes/kitchen.routes";
+
+import waiterRoutes from "../../modules/waiter/routes/waiter.routes";
+
+import billingRoutes from "../../modules/billing/routes/billing.routes";
+
+import paymentRoutes from "../../modules/payments/routes/payment.routes";
+
+import couponRoutes from "../../modules/coupons/routes/coupon.routes";
+
+import offerRoutes from "../../modules/offers/routes/offer.routes";
+
+import loyaltyRoutes
+  from "../../modules/loyalty/routes/loyalty.routes";
+
+import subscriptionRoutes
+  from "../../modules/subscriptions/routes/subscription.routes";
+
+import notificationRoutes from "../../modules/notifications/routes/notification.routes";
+
+import analyticsRoutes from "../../modules/analytics/routes/analytics.routes";
+
+import dashboardRoutes from "../../modules/analytics/routes/dashboard.routes";
+
+
+
 const router = Router();
 
 router.get("/health", (_req, res) => {
@@ -91,6 +121,34 @@ router.use("/suppliers", supplierRoutes);
 
 router.use("/purchases", purchaseRoutes);
 
+router.use("/carts", cartRoutes);
+
+router.use("/orders", orderRoutes);
+
+router.use("/billing", billingRoutes);
+
+router.use("/payments", paymentRoutes);
+
+router.use("/coupons", couponRoutes);
+
+router.use("/offers", offerRoutes);
+
+router.use("/notifications", notificationRoutes);
+
+router.use("/analytics", analyticsRoutes);
+
+router.use("/dashboard", dashboardRoutes);
+
+router.use(
+  "/loyalty",
+  loyaltyRoutes
+);
+
+router.use(
+  "/subscriptions",
+  subscriptionRoutes
+);
+
 router.use(
   "/role-permissions",
   rolePermissionRoutes
@@ -99,6 +157,16 @@ router.use(
 router.use(
   "/inventory-items",
   inventoryItemRoutes
+);
+
+router.use(
+  "/kitchen",
+  kitchenRoutes
+);
+
+router.use(
+  "/waiter",
+  waiterRoutes
 );
 
 router.use(

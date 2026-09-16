@@ -7,14 +7,15 @@ export const seedRolePermissions = async (): Promise<void> => {
     isActive: true,
   });
 
-  for (const role of roles) {
-    const permissions = await Permission.find({
-      isActive: true,
-    });
+  const permissions = await Permission.find({
+    isActive: true,
+  });
 
+  for (const role of roles) {
     for (const permission of permissions) {
       /**
-       * SUPER_ADMIN gets every permission
+       * SUPER_ADMIN
+       * Gets every active permission.
        */
       if (role.name === "SUPER_ADMIN") {
         await RolePermission.updateOne(
@@ -37,8 +38,8 @@ export const seedRolePermissions = async (): Promise<void> => {
       }
 
       /**
-       * RESTAURANT_OWNER gets restaurant-level
-       * and all operational permissions
+       * RESTAURANT_OWNER
+       * Gets every active permission.
        */
       if (role.name === "RESTAURANT_OWNER") {
         await RolePermission.updateOne(
@@ -62,6 +63,8 @@ export const seedRolePermissions = async (): Promise<void> => {
 
       /**
        * BRANCH_MANAGER
+       *
+       * Gets branch-level and operational permissions.
        */
       if (
         role.name === "BRANCH_MANAGER" &&
@@ -74,15 +77,17 @@ export const seedRolePermissions = async (): Promise<void> => {
           "payment:",
           "report:",
           "inventory:",
-          "supplier:create",
-          "supplier:read",
-          "supplier:update",
-          "supplier:delete",
-          "purchase:create",
-          "purchase:read",
-          "purchase:update",
-          "purchase:delete",
-          "purchase:receive",
+          "billing:",
+          "supplier:",
+          "purchase:",
+          "kitchen:",
+          "waiter:",
+          "coupon:",
+          "offer:",
+          "loyalty:",
+          "subscription:",
+          "analytics:",
+          "notification:",
         ].some((prefix) => permission.name.startsWith(prefix))
       ) {
         await RolePermission.updateOne(
@@ -114,7 +119,15 @@ export const seedRolePermissions = async (): Promise<void> => {
           "order:update",
           "payment:create",
           "payment:read",
+          "payment:update",
+          "payment:delete",
+          "billing:create",
+          "billing:read",
+          "billing:update",
+          "billing:delete",
           "report:read",
+          "notification:read",
+          "notification:update",
         ].includes(permission.name)
       ) {
         await RolePermission.updateOne(
@@ -147,6 +160,10 @@ export const seedRolePermissions = async (): Promise<void> => {
           "order:create",
           "order:read",
           "order:update",
+          "waiter:read",
+          "waiter:update",
+          "notification:read",
+          "notification:update",
         ].includes(permission.name)
       ) {
         await RolePermission.updateOne(
@@ -173,7 +190,15 @@ export const seedRolePermissions = async (): Promise<void> => {
        */
       if (
         role.name === "CHEF" &&
-        ["menu:read", "order:read", "order:update"].includes(permission.name)
+        [
+          "menu:read",
+          "order:read",
+          "kitchen:read",
+          "kitchen:update",
+          "order:update",
+          "notification:read",
+          "notification:update",
+        ].includes(permission.name)
       ) {
         await RolePermission.updateOne(
           {
@@ -199,7 +224,15 @@ export const seedRolePermissions = async (): Promise<void> => {
        */
       if (
         role.name === "KITCHEN_STAFF" &&
-        ["menu:read", "order:read", "order:update"].includes(permission.name)
+        [
+          "menu:read",
+          "order:read",
+          "kitchen:read",
+          "kitchen:update",
+          "order:update",
+          "notification:read",
+          "notification:update",
+        ].includes(permission.name)
       ) {
         await RolePermission.updateOne(
           {
@@ -216,6 +249,8 @@ export const seedRolePermissions = async (): Promise<void> => {
             upsert: true,
           },
         );
+
+        continue;
       }
     }
   }
