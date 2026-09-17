@@ -20,7 +20,7 @@
     "sourceMap": true
   },
 
-  "include": ["src"],
+  "include": ["src", "node_modules/@types/multer"],
 
   "exclude": ["node_modules", "dist"]
 }

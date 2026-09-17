@@ -87,7 +87,19 @@ import analyticsRoutes from "../../modules/analytics/routes/analytics.routes";
 
 import dashboardRoutes from "../../modules/analytics/routes/dashboard.routes";
 
+import settingsRoutes from "../../modules/settings/routes/settings.routes";
 
+import uploadRoutes from "../../modules/uploads/routes/upload.routes";
+
+import reportsRoutes from "../../modules/reports/routes/reports.routes";
+
+import aiRoutes from "../../modules/ai/routes/ai.routes";
+
+import healthRoutes from "../../monitoring/health.routes";
+
+import auditRoutes from "../../modules/audit/routes/audit.routes";
+
+import swaggerRoutes from "../../docs/swagger.routes";
 
 const router = Router();
 
@@ -138,6 +150,29 @@ router.use("/notifications", notificationRoutes);
 router.use("/analytics", analyticsRoutes);
 
 router.use("/dashboard", dashboardRoutes);
+
+router.use("/settings", settingsRoutes);
+
+router.use("/uploads", uploadRoutes);
+
+router.use("/reports", reportsRoutes);
+
+router.use("/ai", aiRoutes);
+
+router.use(
+  "/docs",
+  swaggerRoutes
+);
+
+router.use(
+  "/audit",
+  auditRoutes
+);
+
+router.use(
+  "/",
+  healthRoutes
+);
 
 router.use(
   "/loyalty",

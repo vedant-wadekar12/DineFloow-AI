@@ -39,6 +39,16 @@ OFFER_READ: "offer:read",
 OFFER_UPDATE: "offer:update",
 OFFER_DELETE: "offer:delete",
 
+UPLOAD_CREATE: "upload:create",
+UPLOAD_READ: "upload:read",
+UPLOAD_UPDATE: "upload:update",
+UPLOAD_DELETE: "upload:delete",
+
+AI_READ: "ai:read",
+AI_UPDATE: "ai:update",
+
+AUDIT_READ: "audit:read",
+
   LOYALTY_CREATE: "loyalty:create",
   LOYALTY_READ: "loyalty:read",
   LOYALTY_UPDATE: "loyalty:update",
@@ -53,6 +63,9 @@ OFFER_DELETE: "offer:delete",
   ANALYTICS_CREATE: "analytics:create",
   ANALYTICS_UPDATE: "analytics:update",
   ANALYTICS_DELETE: "analytics:delete",
+
+  SETTINGS_READ: "settings:read",
+  SETTINGS_UPDATE: "settings:update",
 
   MENU_CREATE: "menu:create",
   MENU_READ: "menu:read",
@@ -102,5 +115,4 @@ OFFER_DELETE: "offer:delete",
 
   REPORT_READ: "report:read",
 
-  SETTINGS_UPDATE: "settings:update",
 } as const;
