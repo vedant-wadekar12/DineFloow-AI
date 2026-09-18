@@ -14,6 +14,7 @@ import {
   Users,
   UtensilsCrossed,
   X,
+  QrCode,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -30,6 +31,8 @@ const commands = [
   { label: "Payments", href: "/payments", icon: CreditCard },
   { label: "Analytics", href: "/analytics", icon: BarChart3 },
   { label: "AI", href: "/ai", icon: Sparkles },
+  { label: "QR Codes", href: "/qr", icon: QrCode },
+{ label: "Employees", href: "/employees", icon: Users },
 ];
 
 interface CommandPaletteProps {

@@ -81,15 +81,16 @@ export default function BranchTable({
               </TableCell>
 
               <TableCell>
-                <div className="max-w-[220px]">
-                  <p>{branch.address.city}</p>
+  <div className="max-w-[220px]">
+    <p>{branch.address}</p>
 
-                  <p className="text-xs text-muted-foreground">
-                    {branch.address.state},{" "}
-                    {branch.address.country}
-                  </p>
-                </div>
-              </TableCell>
+    <p className="text-xs text-muted-foreground">
+      {[branch.city, branch.state, branch.country]
+        .filter(Boolean)
+        .join(", ")}
+    </p>
+  </div>
+</TableCell>
 
               <TableCell>
                 <div>

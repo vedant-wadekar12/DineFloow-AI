@@ -51,7 +51,12 @@ export default function BranchDetails() {
         );
 
       setBranch(data);
-    } catch {
+    } catch (error) {
+      console.error(
+        "Failed to load branch details:",
+        error,
+      );
+
       setError(
         "Unable to load branch details.",
       );
@@ -119,6 +124,7 @@ export default function BranchDetails() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
+        {/* Contact Information */}
         <div className="rounded-xl border bg-card p-6">
           <h2 className="mb-5 text-lg font-semibold">
             Contact Information
@@ -134,7 +140,8 @@ export default function BranchDetails() {
                 </p>
 
                 <p className="font-medium">
-                  {branch.phone || "Not provided"}
+                  {branch.phone ||
+                    "Not provided"}
                 </p>
               </div>
             </div>
@@ -148,13 +155,15 @@ export default function BranchDetails() {
                 </p>
 
                 <p className="font-medium">
-                  {branch.email || "Not provided"}
+                  {branch.email ||
+                    "Not provided"}
                 </p>
               </div>
             </div>
           </div>
         </div>
 
+        {/* Address */}
         <div className="rounded-xl border bg-card p-6">
           <h2 className="mb-5 text-lg font-semibold">
             Address
@@ -165,28 +174,38 @@ export default function BranchDetails() {
 
             <div className="text-sm leading-6">
               <p>
-                {branch.address.addressLine1}
+                {branch.address ||
+                  "Address not provided"}
               </p>
 
-              {branch.address.addressLine2 && (
+              {(branch.city ||
+                branch.state) && (
                 <p>
-                  {branch.address.addressLine2}
+                  {[
+                    branch.city,
+                    branch.state,
+                  ]
+                    .filter(Boolean)
+                    .join(", ")}
                 </p>
               )}
 
-              <p>
-                {branch.address.city},{" "}
-                {branch.address.state}
-              </p>
-
-              <p>
-                {branch.address.country}{" "}
-                {branch.address.postalCode}
-              </p>
+              {(branch.country ||
+                branch.postalCode) && (
+                <p>
+                  {[
+                    branch.country,
+                    branch.postalCode,
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
+                </p>
+              )}
             </div>
           </div>
         </div>
 
+        {/* Regional Settings */}
         <div className="rounded-xl border bg-card p-6">
           <h2 className="mb-5 text-lg font-semibold">
             Regional Settings
@@ -215,6 +234,7 @@ export default function BranchDetails() {
           </div>
         </div>
 
+        {/* Management */}
         <div className="rounded-xl border bg-card p-6">
           <h2 className="mb-5 text-lg font-semibold">
             Management

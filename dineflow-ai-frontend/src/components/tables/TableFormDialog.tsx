@@ -17,16 +17,25 @@ import { Label } from "@/components/ui/label";
 import type {
   RestaurantTable,
   CreateTableData,
-  TableType,
 } from "@/types/table.types";
 
 const tableSchema = z.object({
-  name: z.string().min(
-    1,
-    "Table name is required",
-  ),
+  name: z
+    .string()
+    .trim()
+    .min(1, "Table name is required")
+    .max(
+      100,
+      "Table name cannot exceed 100 characters",
+    ),
 
-  tableNumber: z.string().optional(),
+  tableNumber: z.coerce
+    .number()
+    .int("Table number must be a whole number")
+    .min(
+      1,
+      "Table number must be at least 1",
+    ),
 
   type: z.enum([
     "STANDARD",
@@ -37,29 +46,43 @@ const tableSchema = z.object({
     "BAR",
   ]),
 
-  capacity: z.coerce.number().min(
-    1,
-    "Capacity must be at least 1",
-  ),
+  capacity: z.coerce
+    .number()
+    .int("Capacity must be a whole number")
+    .min(
+      1,
+      "Capacity must be at least 1",
+    )
+    .max(
+      50,
+      "Capacity cannot exceed 50",
+    ),
 
-  description: z.string().optional(),
+  description: z
+    .string()
+    .trim()
+    .max(
+      300,
+      "Description cannot exceed 300 characters",
+    )
+    .optional(),
 });
 
-type FormValues =
-  z.output<typeof tableSchema>;
+type FormValues = z.output<
+  typeof tableSchema
+>;
 
 interface TableFormDialogProps {
   open: boolean;
-
   table?: RestaurantTable | null;
-
   restaurantId: string;
   branchId: string;
   floorId: string;
-
   loading?: boolean;
 
-  onOpenChange: (open: boolean) => void;
+  onOpenChange: (
+    open: boolean,
+  ) => void;
 
   onSubmit: (
     data: CreateTableData,
@@ -76,7 +99,9 @@ export default function TableFormDialog({
   onOpenChange,
   onSubmit,
 }: TableFormDialogProps) {
-  const isEditing = Boolean(table);
+  const isEditing =
+    table !== null &&
+    table !== undefined;
 
   const {
     register,
@@ -84,15 +109,15 @@ export default function TableFormDialog({
     reset,
     formState: { errors },
   } = useForm<
-  z.input<typeof tableSchema>,
-  unknown,
-  z.output<typeof tableSchema>
->({
-  resolver: zodResolver(tableSchema),
+    z.input<typeof tableSchema>,
+    unknown,
+    z.output<typeof tableSchema>
+  >({
+    resolver: zodResolver(tableSchema),
 
     defaultValues: {
       name: "",
-      tableNumber: "",
+      tableNumber: 1,
       type: "STANDARD",
       capacity: 2,
       description: "",
@@ -100,24 +125,34 @@ export default function TableFormDialog({
   });
 
   useEffect(() => {
+    if (!open) {
+      return;
+    }
+
     if (table) {
       reset({
-        name: table.name,
-
+        name: table.name ?? "",
         tableNumber:
-          table.tableNumber || "",
-
-        type: table.type,
-
-        capacity: table.capacity,
-
+          table.tableNumber ?? 1,
+        type:
+          table.type ?? "STANDARD",
+        capacity:
+          table.capacity ?? 2,
         description:
-          table.description || "",
+          table.description ?? "",
       });
-    } else {
-      reset();
+
+      return;
     }
-  }, [table, reset]);
+
+    reset({
+      name: "",
+      tableNumber: 1,
+      type: "STANDARD",
+      capacity: 2,
+      description: "",
+    });
+  }, [open, table, reset]);
 
   const submitForm = async (
     values: FormValues,
@@ -126,17 +161,12 @@ export default function TableFormDialog({
       restaurantId,
       branchId,
       floorId,
-
       name: values.name,
-
       tableNumber:
-        values.tableNumber ||
-        undefined,
-
-      type: values.type as TableType,
-
-      capacity: values.capacity,
-
+        values.tableNumber,
+      capacity:
+        values.capacity,
+      type: values.type,
       description:
         values.description ||
         undefined,
@@ -150,25 +180,31 @@ export default function TableFormDialog({
       open={open}
       onOpenChange={onOpenChange}
     >
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>
             {isEditing
               ? "Edit Table"
-              : "Create Table"}
+              : "Add Table"}
           </DialogTitle>
         </DialogHeader>
 
         <form
-          onSubmit={handleSubmit(submitForm)}
+          onSubmit={handleSubmit(
+            submitForm,
+          )}
           className="space-y-5"
         >
           <div className="space-y-2">
-            <Label>Table Name *</Label>
+            <Label htmlFor="table-name">
+              Table Name
+            </Label>
 
             <Input
+              id="table-name"
+              placeholder="Table 1"
               {...register("name")}
-              placeholder="Table 01"
+              disabled={loading}
             />
 
             {errors.name && (
@@ -179,22 +215,43 @@ export default function TableFormDialog({
           </div>
 
           <div className="space-y-2">
-            <Label>Table Number</Label>
+            <Label htmlFor="table-number">
+              Table Number
+            </Label>
 
             <Input
+              id="table-number"
+              type="number"
+              min={1}
               {...register(
                 "tableNumber",
+                {
+                  valueAsNumber: true,
+                },
               )}
-              placeholder="T01"
+              disabled={loading}
             />
+
+            {errors.tableNumber && (
+              <p className="text-sm text-destructive">
+                {
+                  errors.tableNumber
+                    .message
+                }
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
-            <Label>Table Type</Label>
+            <Label htmlFor="table-type">
+              Table Type
+            </Label>
 
             <select
+              id="table-type"
               {...register("type")}
-              className="h-10 w-full rounded-md border bg-background px-3 text-sm"
+              disabled={loading}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
             >
               <option value="STANDARD">
                 Standard
@@ -220,48 +277,76 @@ export default function TableFormDialog({
                 Bar
               </option>
             </select>
+
+            {errors.type && (
+              <p className="text-sm text-destructive">
+                {errors.type.message}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
-            <Label>Capacity *</Label>
+            <Label htmlFor="table-capacity">
+              Seating Capacity
+            </Label>
 
             <Input
+              id="table-capacity"
               type="number"
               min={1}
+              max={50}
               {...register(
                 "capacity",
                 {
                   valueAsNumber: true,
                 },
               )}
+              disabled={loading}
             />
 
             {errors.capacity && (
               <p className="text-sm text-destructive">
-                {errors.capacity.message}
+                {
+                  errors.capacity
+                    .message
+                }
               </p>
             )}
           </div>
 
           <div className="space-y-2">
-            <Label>Description</Label>
+            <Label htmlFor="table-description">
+              Description
+            </Label>
 
             <textarea
+              id="table-description"
+              placeholder="Optional description"
               {...register(
                 "description",
               )}
-              placeholder="Optional table description"
-              className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
+              disabled={loading}
+              className="flex min-h-[90px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
             />
+
+            {errors.description && (
+              <p className="text-sm text-destructive">
+                {
+                  errors.description
+                    .message
+                }
+              </p>
+            )}
           </div>
 
-          <div className="flex justify-end gap-3">
+          <div className="flex justify-end gap-2 pt-2">
             <Button
               type="button"
               variant="outline"
               onClick={() =>
                 onOpenChange(false)
               }
+              disabled={loading}
             >
               Cancel
             </Button>

@@ -5,6 +5,8 @@ import {
 } from "react";
 
 import {
+  AlertCircle,
+  Loader2,
   Plus,
   RefreshCw,
 } from "lucide-react";
@@ -12,6 +14,8 @@ import {
 import {
   useSearchParams,
 } from "react-router-dom";
+
+import axios from "axios";
 
 import { Button } from "@/components/ui/button";
 
@@ -24,6 +28,9 @@ import TableFilters from "@/components/tables/TableFilters";
 import RestaurantTable from "@/components/tables/RestaurantTable";
 import TableFormDialog from "@/components/tables/TableFormDialog";
 import DeleteTableDialog from "@/components/tables/DeleteTableDialog";
+import TableViewDialog from "@/components/tables/TableViewDialog";
+
+import QRPreviewDialog from "@/components/qr/QRPreviewDialog";
 
 import { useRestaurant } from "@/context/RestaurantContext";
 
@@ -32,7 +39,13 @@ import type {
   CreateTableData,
 } from "@/types/table.types";
 
+import type {
+  QRCode,
+} from "@/types/qr.types";
+
 import * as tableService from "@/services/tables/table.service";
+import * as branchService from "@/services/branches/branch.service";
+import * as qrService from "@/services/qr/qr.service";
 
 const SELECTED_BRANCH_KEY =
   "dineflow_selected_branch";
@@ -51,22 +64,23 @@ export default function Tables() {
     selectedRestaurantId ?? "";
 
   /*
-   * Prefer floorId from URL.
-   * Fall back to localStorage.
+   * Floor selected from URL.
+   * Falls back to localStorage.
    */
   const urlFloorId =
     searchParams.get("floorId");
 
   const floorId =
-    urlFloorId ||
-    localStorage.getItem(
-      SELECTED_FLOOR_KEY,
-    ) ||
-    "";
+    urlFloorId &&
+    urlFloorId !== "undefined"
+      ? urlFloorId
+      : localStorage.getItem(
+          SELECTED_FLOOR_KEY,
+        ) || "";
 
   /*
-   * Keep URL-selected floor
-   * synchronized with localStorage.
+   * Keep URL floor synchronized
+   * with localStorage.
    */
   useEffect(() => {
     if (
@@ -80,47 +94,171 @@ export default function Tables() {
     }
   }, [urlFloorId]);
 
-  const branchId =
-    localStorage.getItem(
-      SELECTED_BRANCH_KEY,
-    ) || "";
+  /*
+   * Selected branch.
+   */
+  const [
+    branchId,
+    setBranchId,
+  ] = useState(
+    () =>
+      localStorage.getItem(
+        SELECTED_BRANCH_KEY,
+      ) || "",
+  );
 
-  const [tables, setTables] =
-    useState<RestaurantTableType[]>(
-      [],
-    );
+  const [
+    tables,
+    setTables,
+  ] = useState<RestaurantTableType[]>([]);
 
-  const [loading, setLoading] =
-    useState(true);
+  const [
+    loading,
+    setLoading,
+  ] = useState(true);
 
-  const [error, setError] =
-    useState<string | null>(null);
+  const [
+    error,
+    setError,
+  ] = useState<string | null>(null);
 
-  const [search, setSearch] =
-    useState("");
+  const [
+    search,
+    setSearch,
+  ] = useState("");
 
-  const [status, setStatus] =
-    useState("ALL");
+  const [
+    status,
+    setStatus,
+  ] = useState("ALL");
 
-  const [type, setType] =
-    useState("ALL");
+  const [
+    type,
+    setType,
+  ] = useState("ALL");
 
-  const [formOpen, setFormOpen] =
-    useState(false);
+  const [
+    formOpen,
+    setFormOpen,
+  ] = useState(false);
 
-  const [editingTable, setEditingTable] =
-    useState<RestaurantTableType | null>(
-      null,
-    );
+  const [
+    editingTable,
+    setEditingTable,
+  ] = useState<RestaurantTableType | null>(
+    null,
+  );
 
-  const [deleteTable, setDeleteTable] =
-    useState<RestaurantTableType | null>(
-      null,
-    );
+  const [
+    viewingTable,
+    setViewingTable,
+  ] = useState<RestaurantTableType | null>(
+    null,
+  );
 
-  const [actionLoading, setActionLoading] =
-    useState(false);
+  const [
+    deleteTable,
+    setDeleteTable,
+  ] = useState<RestaurantTableType | null>(
+    null,
+  );
 
+  const [
+    previewQR,
+    setPreviewQR,
+  ] = useState<QRCode | null>(null);
+
+  const [
+    actionLoading,
+    setActionLoading,
+  ] = useState(false);
+
+  /*
+   * Validate that the selected branch
+   * belongs to the selected restaurant.
+   */
+  useEffect(() => {
+    const validateBranch =
+      async () => {
+        if (!restaurantId) {
+          setBranchId("");
+
+          localStorage.removeItem(
+            SELECTED_BRANCH_KEY,
+          );
+
+          localStorage.removeItem(
+            SELECTED_FLOOR_KEY,
+          );
+
+          setTables([]);
+
+          return;
+        }
+
+        if (!branchId) {
+          setTables([]);
+          return;
+        }
+
+        try {
+          const branches =
+            await branchService.getBranches(
+              restaurantId,
+            );
+
+          const validBranch =
+            branches.find(
+              (branch) =>
+                String(branch.id) ===
+                String(branchId),
+            );
+
+          if (!validBranch) {
+            setBranchId("");
+
+            localStorage.removeItem(
+              SELECTED_BRANCH_KEY,
+            );
+
+            localStorage.removeItem(
+              SELECTED_FLOOR_KEY,
+            );
+
+            setTables([]);
+
+            setError(
+              "The selected branch does not belong to this restaurant. Please select a branch.",
+            );
+
+            return;
+          }
+
+          /*
+           * Branch is valid.
+           */
+          setError(null);
+        } catch (error) {
+          console.error(
+            "Failed to validate branch:",
+            error,
+          );
+
+          setError(
+            "Unable to validate the selected branch.",
+          );
+        }
+      };
+
+    void validateBranch();
+  }, [
+    restaurantId,
+    branchId,
+  ]);
+
+  /*
+   * Load tables for selected floor.
+   */
   const loadTables = async () => {
     if (!floorId) {
       setTables([]);
@@ -156,46 +294,64 @@ export default function Tables() {
     void loadTables();
   }, [floorId]);
 
-  const filteredTables = useMemo(() => {
-    return tables.filter((table) => {
-      const searchValue =
-        search.toLowerCase();
+  /*
+   * Filter tables.
+   */
+  const filteredTables =
+    useMemo(() => {
+      return tables.filter(
+        (table) => {
+          const searchValue =
+            search
+              .toLowerCase()
+              .trim();
 
-      const matchesSearch =
-        table.name
-          .toLowerCase()
-          .includes(searchValue) ||
-        table.tableNumber
-          ?.toLowerCase()
-          .includes(searchValue);
+          const tableName =
+            table.name
+              ?.toLowerCase() ?? "";
 
-      const matchesStatus =
-        status === "ALL" ||
-        table.status === status;
+          const tableNumber =
+            table.tableNumber
+              ?.toString() ?? "";
 
-      const matchesType =
-        type === "ALL" ||
-        table.type === type;
+          const matchesSearch =
+            tableName.includes(
+              searchValue,
+            ) ||
+            tableNumber.includes(
+              searchValue,
+            );
 
-      return Boolean(
-        matchesSearch &&
-          matchesStatus &&
-          matchesType,
+          const matchesStatus =
+            status === "ALL" ||
+            table.status === status;
+
+          const matchesType =
+            type === "ALL" ||
+            table.type === type;
+
+          return (
+            matchesSearch &&
+            matchesStatus &&
+            matchesType
+          );
+        },
       );
-    });
-  }, [
-    tables,
-    search,
-    status,
-    type,
-  ]);
+    }, [
+      tables,
+      search,
+      status,
+      type,
+    ]);
 
+  /*
+   * Open Add Table dialog.
+   */
   const handleCreate = () => {
     if (!restaurantId) {
       setError(
         "Please select a restaurant first.",
       );
-
       return;
     }
 
@@ -203,7 +359,6 @@ export default function Tables() {
       setError(
         "Please select a branch first.",
       );
-
       return;
     }
 
@@ -211,14 +366,17 @@ export default function Tables() {
       setError(
         "Please select a floor first.",
       );
-
       return;
     }
 
+    setError(null);
     setEditingTable(null);
     setFormOpen(true);
   };
 
+  /*
+   * Create or update table.
+   */
   const handleSubmit = async (
     data: CreateTableData,
   ) => {
@@ -226,7 +384,6 @@ export default function Tables() {
       setError(
         "Please select a restaurant first.",
       );
-
       return;
     }
 
@@ -234,7 +391,6 @@ export default function Tables() {
       setError(
         "Please select a branch first.",
       );
-
       return;
     }
 
@@ -242,7 +398,6 @@ export default function Tables() {
       setError(
         "Please select a floor first.",
       );
-
       return;
     }
 
@@ -250,12 +405,55 @@ export default function Tables() {
       setActionLoading(true);
       setError(null);
 
+      /*
+       * Get latest tables before saving.
+       * This prevents stale duplicate checks.
+       */
+      const latestTables =
+        await tableService.getTables(
+          floorId,
+        );
+
+      /*
+       * Check duplicate table number.
+       */
+      const duplicateTable =
+        latestTables.find(
+          (table) =>
+            Number(
+              table.tableNumber,
+            ) ===
+              Number(
+                data.tableNumber,
+              ) &&
+            String(table.id) !==
+              String(
+                editingTable?.id,
+              ),
+        );
+
+      if (duplicateTable) {
+        setError(
+          `Table number ${data.tableNumber} already exists on this floor. Please choose another table number.`,
+        );
+
+        setTables(latestTables);
+
+        return;
+      }
+
+      /*
+       * Update existing table.
+       */
       if (editingTable) {
         await tableService.updateTable(
           editingTable.id,
           data,
         );
       } else {
+        /*
+         * Create new table.
+         */
         await tableService.createTable(
           {
             ...data,
@@ -276,48 +474,325 @@ export default function Tables() {
         error,
       );
 
+      if (
+        axios.isAxiosError(error)
+      ) {
+        const backendMessage =
+          error.response?.data
+            ?.message;
+
+        if (
+          typeof backendMessage ===
+          "string"
+        ) {
+          setError(
+            backendMessage,
+          );
+
+          return;
+        }
+      }
+
       setError(
-        "Unable to save table.",
+        "Unable to save table. Please try again.",
       );
     } finally {
       setActionLoading(false);
     }
   };
 
-  const handleDelete = async () => {
-    if (!deleteTable) return;
+  /*
+   * Generate QR automatically.
+   *
+   * User does NOT enter:
+   * - Restaurant ID
+   * - Branch ID
+   * - Floor ID
+   * - Table ID
+   *
+   * These are already known here.
+   */
+  const handleGenerateQR =
+    async (
+      table: RestaurantTableType,
+    ) => {
+      if (!restaurantId) {
+        setError(
+          "Please select a restaurant first.",
+        );
+        return;
+      }
 
-    try {
-      setActionLoading(true);
-      setError(null);
+      if (!branchId) {
+        setError(
+          "Please select a branch first.",
+        );
+        return;
+      }
 
-      await tableService.deleteTable(
-        deleteTable.id,
-      );
+      if (!floorId) {
+        setError(
+          "Please select a floor first.",
+        );
+        return;
+      }
 
-      setDeleteTable(null);
+      if (!table.id) {
+        setError(
+          "Unable to generate QR because the table ID is missing.",
+        );
+        return;
+      }
 
-      await loadTables();
-    } catch (error) {
-      console.error(
-        "Failed to delete table:",
-        error,
-      );
+      try {
+        setActionLoading(true);
+        setError(null);
 
+        const qr =
+          await qrService.createQR(
+            {
+              restaurantId,
+              branchId,
+              floorId,
+              tableId: table.id,
+            },
+          );
+
+        setPreviewQR(qr);
+
+        await loadTables();
+      } catch (error) {
+        console.error(
+          "Failed to generate QR:",
+          error,
+        );
+
+        if (
+          axios.isAxiosError(error)
+        ) {
+          const backendMessage =
+            error.response?.data
+              ?.message;
+
+          if (
+            typeof backendMessage ===
+            "string"
+          ) {
+            setError(
+              backendMessage,
+            );
+
+            return;
+          }
+        }
+
+        setError(
+          "Unable to generate QR code. Please try again.",
+        );
+      } finally {
+        setActionLoading(false);
+      }
+    };
+
+  /*
+   * Download QR image.
+   */
+  const downloadQR = (
+    qr: QRCode,
+  ) => {
+    if (!qr.qrImage) {
       setError(
-        "Unable to delete table.",
+        "QR image is not available.",
       );
-    } finally {
-      setActionLoading(false);
+      return;
     }
+
+    const link =
+      document.createElement(
+        "a",
+      );
+
+    link.href = qr.qrImage;
+
+    link.download =
+      `table-${qr.tableNumber}-qr.png`;
+
+    document.body.appendChild(
+      link,
+    );
+
+    link.click();
+
+    document.body.removeChild(
+      link,
+    );
   };
 
+  /*
+   * Print QR.
+   */
+  const printQR = (
+    qr: QRCode,
+  ) => {
+    if (!qr.qrImage) {
+      setError(
+        "QR image is not available.",
+      );
+      return;
+    }
+
+    const printWindow =
+      window.open(
+        "",
+        "_blank",
+        "width=700,height=800",
+      );
+
+    if (!printWindow) {
+      setError(
+        "Please allow pop-ups to print the QR code.",
+      );
+      return;
+    }
+
+    printWindow.document.write(
+      `
+      <!doctype html>
+      <html>
+        <head>
+          <title>Table ${qr.tableNumber} QR</title>
+
+          <style>
+            body {
+              margin: 0;
+              min-height: 100vh;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-family: Arial, sans-serif;
+            }
+
+            .card {
+              text-align: center;
+            }
+
+            img {
+              width: 500px;
+              max-width: 80vw;
+            }
+
+            h1 {
+              margin-bottom: 24px;
+            }
+
+            p {
+              margin-top: 16px;
+              color: #666;
+            }
+          </style>
+        </head>
+
+        <body>
+          <div class="card">
+            <h1>
+              Table ${qr.tableNumber}
+            </h1>
+
+            <img
+              src="${qr.qrImage}"
+              alt="QR Code for Table ${qr.tableNumber}"
+            />
+
+            <p>
+              Scan to order
+            </p>
+          </div>
+        </body>
+      </html>
+      `,
+    );
+
+    printWindow.document.close();
+
+    printWindow.focus();
+
+    printWindow.onafterprint =
+      () => {
+        printWindow.close();
+      };
+
+    setTimeout(() => {
+      printWindow.print();
+    }, 300);
+  };
+
+  /*
+   * Delete table.
+   */
+  const handleDelete =
+    async () => {
+      if (!deleteTable) {
+        return;
+      }
+
+      try {
+        setActionLoading(true);
+        setError(null);
+
+        await tableService.deleteTable(
+          deleteTable.id,
+        );
+
+        setDeleteTable(null);
+
+        await loadTables();
+      } catch (error) {
+        console.error(
+          "Failed to delete table:",
+          error,
+        );
+
+        if (
+          axios.isAxiosError(error)
+        ) {
+          const backendMessage =
+            error.response?.data
+              ?.message;
+
+          if (
+            typeof backendMessage ===
+            "string"
+          ) {
+            setError(
+              backendMessage,
+            );
+
+            return;
+          }
+        }
+
+        setError(
+          "Unable to delete table.",
+        );
+      } finally {
+        setActionLoading(false);
+      }
+    };
+
+  /*
+   * Initial loading.
+   */
   if (loading) {
     return (
-      <LoadingState message="Loading tables..." />
+      <LoadingState
+        message="Loading tables..."
+      />
     );
   }
 
+  /*
+   * Initial error.
+   */
   if (
     error &&
     tables.length === 0
@@ -332,6 +807,7 @@ export default function Tables() {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
@@ -351,6 +827,10 @@ export default function Tables() {
             onClick={() =>
               void loadTables()
             }
+            disabled={
+              loading ||
+              actionLoading
+            }
           >
             <RefreshCw className="mr-2 h-4 w-4" />
             Refresh
@@ -359,7 +839,12 @@ export default function Tables() {
           <Button
             type="button"
             onClick={handleCreate}
-            disabled={!floorId}
+            disabled={
+              !restaurantId ||
+              !branchId ||
+              !floorId ||
+              actionLoading
+            }
           >
             <Plus className="mr-2 h-4 w-4" />
             Add Table
@@ -367,12 +852,16 @@ export default function Tables() {
         </div>
       </div>
 
+      {/* Error */}
       {error && (
-        <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
-          {error}
+        <div className="flex items-start gap-3 rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+
+          <span>{error}</span>
         </div>
       )}
 
+      {/* No floor */}
       {!floorId ? (
         <EmptyState
           title="Select a floor"
@@ -380,40 +869,55 @@ export default function Tables() {
         />
       ) : (
         <>
+          {/* Statistics */}
           <TableStats
             tables={tables}
           />
 
+          {/* Filters */}
           <div className="rounded-xl border bg-card p-4">
             <TableFilters
               search={search}
               status={status}
               type={type}
-              onSearchChange={setSearch}
-              onStatusChange={setStatus}
-              onTypeChange={setType}
+              onSearchChange={
+                setSearch
+              }
+              onStatusChange={
+                setStatus
+              }
+              onTypeChange={
+                setType
+              }
             />
           </div>
 
+          {/* Table list */}
           {filteredTables.length ===
           0 ? (
             <EmptyState
               title={
-                tables.length === 0
+                tables.length ===
+                0
                   ? "No tables yet"
                   : "No tables found"
               }
               description={
-                tables.length === 0
+                tables.length ===
+                0
                   ? "Create the first table for this floor."
                   : "Try changing your filters."
               }
               action={
-                tables.length === 0 ? (
+                tables.length ===
+                0 ? (
                   <Button
                     type="button"
                     onClick={
                       handleCreate
+                    }
+                    disabled={
+                      actionLoading
                     }
                   >
                     <Plus className="mr-2 h-4 w-4" />
@@ -427,25 +931,39 @@ export default function Tables() {
               tables={
                 filteredTables
               }
-              onView={(table) =>
-                console.log(
-                  "View table",
-                  table.id,
-                )
-              }
+              onView={(table) => {
+                setViewingTable(
+                  table,
+                );
+              }}
               onEdit={(table) => {
+                setError(null);
+
                 setEditingTable(
                   table,
                 );
 
-                setFormOpen(true);
+                setFormOpen(
+                  true,
+                );
               }}
-              onDelete={
-                setDeleteTable
+              onDelete={(table) => {
+                setError(null);
+
+                setDeleteTable(
+                  table,
+                );
+              }}
+              onGenerateQR={
+                handleGenerateQR
+              }
+              actionLoading={
+                actionLoading
               }
             />
           )}
 
+          {/* Add / Edit */}
           <TableFormDialog
             open={formOpen}
             table={editingTable}
@@ -454,21 +972,51 @@ export default function Tables() {
             }
             branchId={branchId}
             floorId={floorId}
-            loading={actionLoading}
-            onOpenChange={
-              setFormOpen
+            loading={
+              actionLoading
             }
+            onOpenChange={(
+              open,
+            ) => {
+              setFormOpen(open);
+
+              if (!open) {
+                setEditingTable(
+                  null,
+                );
+              }
+            }}
             onSubmit={
               handleSubmit
             }
           />
 
+          {/* View */}
+          <TableViewDialog
+            open={Boolean(
+              viewingTable,
+            )}
+            table={viewingTable}
+            onOpenChange={(
+              open,
+            ) => {
+              if (!open) {
+                setViewingTable(
+                  null,
+                );
+              }
+            }}
+          />
+
+          {/* Delete */}
           <DeleteTableDialog
             open={Boolean(
               deleteTable,
             )}
             table={deleteTable}
-            loading={actionLoading}
+            loading={
+              actionLoading
+            }
             onOpenChange={(
               open,
             ) => {
@@ -482,7 +1030,29 @@ export default function Tables() {
               handleDelete
             }
           />
+
+          {/* QR Preview */}
+          <QRPreviewDialog
+            qr={previewQR}
+            onClose={() =>
+              setPreviewQR(null)
+            }
+            onDownload={
+              downloadQR
+            }
+            onPrint={
+              printQR
+            }
+          />
         </>
+      )}
+
+      {/* Action loading */}
+      {actionLoading && (
+        <div className="fixed bottom-5 right-5 z-50 flex items-center gap-2 rounded-xl bg-gray-900 px-4 py-3 text-sm font-medium text-white shadow-xl">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Processing...
+        </div>
       )}
     </div>
   );

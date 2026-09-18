@@ -18,6 +18,8 @@ import {
   Sparkles,
   Settings,
   ShoppingBag,
+  QrCode,
+  UsersRound,
 } from "lucide-react";
 
 export interface NavigationItem {
@@ -59,6 +61,12 @@ export const navigationItems: NavigationItem[] = [
     permissions: ["table:read"],
   },
   {
+  label: "QR Codes",
+  href: "/qr",
+  icon: QrCode,
+  permissions: ["menu:read"],
+},
+  {
     label: "Menu",
     href: "/menu",
     icon: UtensilsCrossed,
@@ -70,6 +78,12 @@ export const navigationItems: NavigationItem[] = [
     icon: Users,
     permissions: ["employee:read"],
   },
+  {
+  label: "Employees",
+  href: "/employees",
+  icon: UsersRound,
+  permissions: ["user:read"],
+},
   {
     label: "Inventory",
     href: "/inventory",

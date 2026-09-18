@@ -20,36 +20,51 @@ import type {
 } from "@/types/branch.types";
 
 const branchSchema = z.object({
-  name: z.string().min(2, "Branch name is required"),
-  code: z.string().optional(),
-  phone: z.string().optional(),
+  name: z
+    .string()
+    .min(2, "Branch name is required"),
+
+  code: z
+    .string()
+    .optional(),
+
+  phone: z
+    .string()
+    .optional(),
+
   email: z
     .string()
     .email("Enter a valid email")
     .optional()
     .or(z.literal("")),
 
-  addressLine1: z.string().min(
-    2,
-    "Address is required",
-  ),
+  address: z
+    .string()
+    .min(2, "Address is required"),
 
-  addressLine2: z.string().optional(),
+  city: z
+    .string()
+    .min(2, "City is required"),
 
-  city: z.string().min(2, "City is required"),
+  state: z
+    .string()
+    .min(2, "State is required"),
 
-  state: z.string().min(2, "State is required"),
+  country: z
+    .string()
+    .min(2, "Country is required"),
 
-  country: z.string().min(2, "Country is required"),
+  postalCode: z
+    .string()
+    .min(3, "Postal code is required"),
 
-  postalCode: z.string().min(
-    3,
-    "Postal code is required",
-  ),
+  timezone: z
+    .string()
+    .optional(),
 
-  timezone: z.string().optional(),
-
-  currency: z.string().optional(),
+  currency: z
+    .string()
+    .optional(),
 });
 
 type FormValues = z.infer<typeof branchSchema>;
@@ -82,13 +97,13 @@ export default function BranchFormDialog({
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(branchSchema),
+
     defaultValues: {
       name: "",
       code: "",
       phone: "",
       email: "",
-      addressLine1: "",
-      addressLine2: "",
+      address: "",
       city: "",
       state: "",
       country: "India",
@@ -105,21 +120,28 @@ export default function BranchFormDialog({
         code: branch.code || "",
         phone: branch.phone || "",
         email: branch.email || "",
-        addressLine1:
-          branch.address.addressLine1,
-        addressLine2:
-          branch.address.addressLine2 || "",
-        city: branch.address.city,
-        state: branch.address.state,
-        country: branch.address.country,
-        postalCode:
-          branch.address.postalCode,
-        timezone:
-          branch.timezone || "Asia/Kolkata",
+        address: branch.address || "",
+        city: branch.city || "",
+        state: branch.state || "",
+        country: branch.country || "India",
+        postalCode: branch.postalCode || "",
+        timezone: branch.timezone || "Asia/Kolkata",
         currency: branch.currency || "INR",
       });
     } else {
-      reset();
+      reset({
+        name: "",
+        code: "",
+        phone: "",
+        email: "",
+        address: "",
+        city: "",
+        state: "",
+        country: "India",
+        postalCode: "",
+        timezone: "Asia/Kolkata",
+        currency: "INR",
+      });
     }
   }, [branch, reset]);
 
@@ -131,21 +153,24 @@ export default function BranchFormDialog({
 
       name: values.name,
 
-      code: values.code || undefined,
+      code:
+        values.code || undefined,
 
-      phone: values.phone || undefined,
+      phone:
+        values.phone || undefined,
 
-      email: values.email || undefined,
+      email:
+        values.email || undefined,
 
-      address: {
-        addressLine1: values.addressLine1,
-        addressLine2:
-          values.addressLine2 || undefined,
-        city: values.city,
-        state: values.state,
-        country: values.country,
-        postalCode: values.postalCode,
-      },
+      address: values.address,
+
+      city: values.city,
+
+      state: values.state,
+
+      country: values.country,
+
+      postalCode: values.postalCode,
 
       timezone:
         values.timezone || undefined,
@@ -181,7 +206,7 @@ export default function BranchFormDialog({
 
               <Input
                 {...register("name")}
-                placeholder="Mumbai Central"
+                placeholder="Main Branch"
               />
 
               {errors.name && (
@@ -196,8 +221,14 @@ export default function BranchFormDialog({
 
               <Input
                 {...register("code")}
-                placeholder="MUM-001"
+                placeholder="MAIN-01"
               />
+
+              {errors.code && (
+                <p className="text-sm text-destructive">
+                  {errors.code.message}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -205,8 +236,14 @@ export default function BranchFormDialog({
 
               <Input
                 {...register("phone")}
-                placeholder="+91 9876543210"
+                placeholder="9876543210"
               />
+
+              {errors.phone && (
+                <p className="text-sm text-destructive">
+                  {errors.phone.message}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -214,6 +251,7 @@ export default function BranchFormDialog({
 
               <Input
                 {...register("email")}
+                type="email"
                 placeholder="branch@example.com"
               />
 
@@ -230,74 +268,103 @@ export default function BranchFormDialog({
               Address
             </h3>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2 md:col-span-2">
-                <Label>Address Line 1 *</Label>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Address *</Label>
 
                 <Input
-                  {...register("addressLine1")}
+                  {...register("address")}
                   placeholder="123 Main Street"
                 />
 
-                {errors.addressLine1 && (
+                {errors.address && (
                   <p className="text-sm text-destructive">
-                    {errors.addressLine1.message}
+                    {errors.address.message}
                   </p>
                 )}
               </div>
 
-              <div className="space-y-2 md:col-span-2">
-                <Label>Address Line 2</Label>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>City *</Label>
 
-                <Input
-                  {...register("addressLine2")}
-                  placeholder="Building / Floor / Landmark"
-                />
+                  <Input
+                    {...register("city")}
+                    placeholder="Mumbai"
+                  />
+
+                  {errors.city && (
+                    <p className="text-sm text-destructive">
+                      {errors.city.message}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label>State *</Label>
+
+                  <Input
+                    {...register("state")}
+                    placeholder="Maharashtra"
+                  />
+
+                  {errors.state && (
+                    <p className="text-sm text-destructive">
+                      {errors.state.message}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Country *</Label>
+
+                  <Input
+                    {...register("country")}
+                    placeholder="India"
+                  />
+
+                  {errors.country && (
+                    <p className="text-sm text-destructive">
+                      {errors.country.message}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Postal Code *</Label>
+
+                  <Input
+                    {...register("postalCode")}
+                    placeholder="400001"
+                  />
+
+                  {errors.postalCode && (
+                    <p className="text-sm text-destructive">
+                      {errors.postalCode.message}
+                    </p>
+                  )}
+                </div>
               </div>
+            </div>
+          </div>
 
-              <div className="space-y-2">
-                <Label>City *</Label>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label>Timezone</Label>
 
-                <Input {...register("city")} />
+              <Input
+                {...register("timezone")}
+                placeholder="Asia/Kolkata"
+              />
+            </div>
 
-                {errors.city && (
-                  <p className="text-sm text-destructive">
-                    {errors.city.message}
-                  </p>
-                )}
-              </div>
+            <div className="space-y-2">
+              <Label>Currency</Label>
 
-              <div className="space-y-2">
-                <Label>State *</Label>
-
-                <Input {...register("state")} />
-
-                {errors.state && (
-                  <p className="text-sm text-destructive">
-                    {errors.state.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label>Country *</Label>
-
-                <Input {...register("country")} />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Postal Code *</Label>
-
-                <Input
-                  {...register("postalCode")}
-                />
-
-                {errors.postalCode && (
-                  <p className="text-sm text-destructive">
-                    {errors.postalCode.message}
-                  </p>
-                )}
-              </div>
+              <Input
+                {...register("currency")}
+                placeholder="INR"
+              />
             </div>
           </div>
 
@@ -305,7 +372,10 @@ export default function BranchFormDialog({
             <Button
               type="button"
               variant="outline"
-              onClick={() => onOpenChange(false)}
+              onClick={() =>
+                onOpenChange(false)
+              }
+              disabled={loading}
             >
               Cancel
             </Button>

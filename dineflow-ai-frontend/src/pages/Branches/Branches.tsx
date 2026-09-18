@@ -117,9 +117,9 @@ export default function Branches() {
         branch.code
           ?.toLowerCase()
           .includes(searchValue) ||
-        branch.address.city
-          .toLowerCase()
-          .includes(searchValue);
+        branch.city
+  ?.toLowerCase()
+  .includes(searchValue)
 
       const matchesStatus =
         status === "ALL" ||

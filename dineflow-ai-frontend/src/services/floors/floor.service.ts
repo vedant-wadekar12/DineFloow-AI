@@ -6,53 +6,104 @@ import type {
   UpdateFloorData,
 } from "@/types/floor.types";
 
-interface FloorListResponse {
-  floors: Floor[];
-  total?: number;
+interface BackendFloor {
+  _id: string;
+  branchId:
+    | string
+    | {
+        _id: string;
+      };
+  name: string;
+  code?: string;
+  description?: string;
+  floorNumber?: number;
+  isActive: boolean;
+  isDeleted?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+interface BackendResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
+}
+
+function normalizeFloor(
+  floor: BackendFloor,
+): Floor {
+  const branchId =
+    typeof floor.branchId === "string"
+      ? floor.branchId
+      : floor.branchId?._id;
+
+  return {
+    id: floor._id,
+    restaurantId: "",
+    branchId,
+    name: floor.name,
+    code: floor.code,
+    description: floor.description,
+    floorNumber: floor.floorNumber,
+    status: floor.isActive
+      ? "ACTIVE"
+      : "INACTIVE",
+    createdAt: floor.createdAt,
+    updatedAt: floor.updatedAt,
+  };
 }
 
 export async function getFloors(
-  branchId?: string,
+  branchId: string,
 ): Promise<Floor[]> {
-  const response =
-    await apiClient.get<
-      FloorListResponse | Floor[]
-    >("/floors", {
-      params: branchId
-        ? { branchId }
-        : undefined,
-    });
-
-  const data = response.data;
-
-  if (Array.isArray(data)) {
-    return data;
+  if (!branchId) {
+    return [];
   }
 
-  return data.floors ?? [];
+  const response =
+    await apiClient.get<
+      BackendResponse<BackendFloor[]>
+    >(
+      `/floors/branch/${encodeURIComponent(
+        branchId,
+      )}`,
+    );
+
+  const data = response.data.data ?? [];
+
+  return data.map(normalizeFloor);
 }
 
 export async function getFloor(
   floorId: string,
 ): Promise<Floor> {
   const response =
-    await apiClient.get<Floor>(
-      `/floors/${floorId}`,
-    );
+    await apiClient.get<
+      BackendResponse<BackendFloor>
+    >(`/floors/${floorId}`);
 
-  return response.data;
+  return normalizeFloor(
+    response.data.data,
+  );
 }
 
 export async function createFloor(
   data: CreateFloorData,
 ): Promise<Floor> {
   const response =
-    await apiClient.post<Floor>(
-      "/floors",
-      data,
-    );
+    await apiClient.post<
+      BackendResponse<BackendFloor>
+    >("/floors", {
+      branchId: data.branchId,
+      name: data.name,
+      code: data.code,
+      description: data.description,
+      floorNumber: data.floorNumber,
+    });
 
-  return response.data;
+  return normalizeFloor(
+    response.data.data,
+  );
 }
 
 export async function updateFloor(
@@ -60,12 +111,18 @@ export async function updateFloor(
   data: UpdateFloorData,
 ): Promise<Floor> {
   const response =
-    await apiClient.patch<Floor>(
-      `/floors/${floorId}`,
-      data,
-    );
+    await apiClient.patch<
+      BackendResponse<BackendFloor>
+    >(`/floors/${floorId}`, {
+      name: data.name,
+      code: data.code,
+      description: data.description,
+      floorNumber: data.floorNumber,
+    });
 
-  return response.data;
+  return normalizeFloor(
+    response.data.data,
+  );
 }
 
 export async function deleteFloor(
@@ -81,10 +138,17 @@ export async function updateFloorStatus(
   status: "ACTIVE" | "INACTIVE",
 ): Promise<Floor> {
   const response =
-    await apiClient.patch<Floor>(
+    await apiClient.patch<
+      BackendResponse<BackendFloor>
+    >(
       `/floors/${floorId}/status`,
-      { status },
+      {
+        isActive:
+          status === "ACTIVE",
+      },
     );
 
-  return response.data;
+  return normalizeFloor(
+    response.data.data,
+  );
 }

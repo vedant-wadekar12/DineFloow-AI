@@ -1,14 +1,5 @@
 export type BranchStatus = "ACTIVE" | "INACTIVE";
 
-export interface BranchAddress {
-  addressLine1: string;
-  addressLine2?: string;
-  city: string;
-  state: string;
-  country: string;
-  postalCode: string;
-}
-
 export interface Branch {
   id: string;
   restaurantId: string;
@@ -19,7 +10,11 @@ export interface Branch {
   phone?: string;
   email?: string;
 
-  address: BranchAddress;
+  address: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  postalCode?: string;
 
   status: BranchStatus;
 
@@ -40,7 +35,11 @@ export interface CreateBranchData {
   phone?: string;
   email?: string;
 
-  address: BranchAddress;
+  address: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  postalCode?: string;
 
   timezone?: string;
   currency?: string;
@@ -52,7 +51,11 @@ export interface UpdateBranchData {
   phone?: string;
   email?: string;
 
-  address?: BranchAddress;
+  address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  postalCode?: string;
 
   timezone?: string;
   currency?: string;

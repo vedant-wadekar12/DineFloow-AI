@@ -2,7 +2,9 @@ export type TableStatus =
   | "AVAILABLE"
   | "OCCUPIED"
   | "RESERVED"
-  | "INACTIVE";
+  | "INACTIVE"
+  | "CLEANING"
+  | "OUT_OF_SERVICE";
 
 export type TableType =
   | "STANDARD"
@@ -15,14 +17,14 @@ export type TableType =
 export interface RestaurantTable {
   id: string;
 
-  restaurantId: string;
+  restaurantId?: string;
   branchId: string;
   floorId: string;
 
   name: string;
-  tableNumber?: string;
+  tableNumber: number;
 
-  type: TableType;
+  type?: TableType;
 
   capacity: number;
 
@@ -32,6 +34,11 @@ export interface RestaurantTable {
 
   qrCode?: string;
   qrUrl?: string;
+
+  position?: {
+    x: number;
+    y: number;
+  };
 
   createdAt?: string;
   updatedAt?: string;
@@ -43,18 +50,24 @@ export interface CreateTableData {
   floorId: string;
 
   name: string;
-  tableNumber?: string;
+  tableNumber: number;
 
-  type: TableType;
+  type?: TableType;
 
   capacity: number;
 
   description?: string;
+
+  position?: {
+    x: number;
+    y: number;
+  };
 }
 
 export interface UpdateTableData {
   name?: string;
-  tableNumber?: string;
+
+  tableNumber?: number;
 
   type?: TableType;
 
@@ -63,4 +76,9 @@ export interface UpdateTableData {
   status?: TableStatus;
 
   description?: string;
+
+  position?: {
+    x: number;
+    y: number;
+  };
 }

@@ -46,6 +46,12 @@ import Inventory from "@/pages/Inventory/Inventory";
 // Orders
 import Orders from "@/pages/Orders/Orders";
 
+// QR
+import QRManagement from "@/pages/QR/QRManagement";
+
+// Employees
+import Employees from "@/pages/Employees/Employees";
+
 /**
  * Placeholder page for modules
  * that are not implemented yet.
@@ -213,6 +219,11 @@ function AppRoutes() {
             element={<Tables />}
           />
 
+          <Route
+  path="/qr"
+  element={<QRManagement />}
+/>
+
           {/* =================================================
               MENU
           ================================================= */}
@@ -230,6 +241,11 @@ function AppRoutes() {
             path="/staff"
             element={<Staff />}
           />
+
+          <Route
+  path="/employees"
+  element={<Employees />}
+/>
 
           {/* =================================================
               INVENTORY
