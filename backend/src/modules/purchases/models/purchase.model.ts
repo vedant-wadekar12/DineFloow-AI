@@ -5,6 +5,7 @@ import {
   Types,
 } from "mongoose";
 
+import { tenantPlugin } from "../../../common/tenant/tenant-plugin";
 export type PurchaseStatus =
   | "DRAFT"
   | "ORDERED"
@@ -239,6 +240,8 @@ purchaseSchema.index({
   supplierId: 1,
   purchaseDate: -1,
 });
+
+purchaseSchema.plugin(tenantPlugin);
 
 export const Purchase = model<IPurchase>(
   "Purchase",

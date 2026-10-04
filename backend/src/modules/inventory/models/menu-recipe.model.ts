@@ -5,6 +5,7 @@ import {
   model,
 } from "mongoose";
 
+import { tenantPlugin } from "../../../common/tenant/tenant-plugin";
 export interface IMenuRecipe
   extends Document {
   restaurantId: Types.ObjectId;
@@ -77,6 +78,8 @@ menuRecipeSchema.index(
     unique: true,
   }
 );
+
+menuRecipeSchema.plugin(tenantPlugin);
 
 export const MenuRecipe =
   model<IMenuRecipe>(

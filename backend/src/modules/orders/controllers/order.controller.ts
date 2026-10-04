@@ -17,7 +17,8 @@ export class OrderController {
       const order =
         await orderService.create(
           req.body,
-          req.user?.userId
+          req.user?.userId,
+          req.header("x-cart-session-id") ?? undefined
         );
 
       res.status(201).json({
@@ -107,7 +108,8 @@ export class OrderController {
         await orderService.updateStatus(
           String(req.params.orderId),
           req.body,
-          req.user?.userId
+          req.user?.userId,
+          req.header("x-cart-session-id") ?? undefined
         );
 
       res.json({
@@ -129,7 +131,8 @@ export class OrderController {
         await orderService.cancel(
           String(req.params.orderId),
           req.body,
-          req.user?.userId
+          req.user?.userId,
+          req.header("x-cart-session-id") ?? undefined
         );
 
       res.json({

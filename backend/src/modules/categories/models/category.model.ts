@@ -1,5 +1,6 @@
 import { Document, Schema, Types, model } from "mongoose";
 
+import { tenantPlugin } from "../../../common/tenant/tenant-plugin";
 export interface ICategory extends Document {
   restaurantId: Types.ObjectId;
   branchId?: Types.ObjectId;
@@ -94,6 +95,8 @@ categorySchema.index(
     unique: true,
   }
 );
+
+categorySchema.plugin(tenantPlugin);
 
 export const Category = model<ICategory>(
   "Category",

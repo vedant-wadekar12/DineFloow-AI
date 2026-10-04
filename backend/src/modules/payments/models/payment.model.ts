@@ -6,6 +6,7 @@ import {
   model,
 } from "mongoose";
 
+import { tenantPlugin } from "../../../common/tenant/tenant-plugin";
 export type PaymentMethod =
   | "CASH"
   | "UPI"
@@ -192,6 +193,8 @@ paymentSchema.index({
   billId: 1,
   status: 1,
 });
+
+paymentSchema.plugin(tenantPlugin);
 
 export const Payment: Model<IPayment> =
   model<IPayment>(

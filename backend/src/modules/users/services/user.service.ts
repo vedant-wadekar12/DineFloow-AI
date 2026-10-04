@@ -1,69 +1,49 @@
-import { NotFoundError } from "../../../common/errors";
-
+import { ForbiddenError, NotFoundError } from "../../../common/errors";
 import { userRepository } from "../repositories/user.repository";
-
 import { roleRepository } from "../../roles/repositories/role.repository";
+
 export class UserService {
-  async getAll() {
-    return await userRepository.findAll();
+  async getAll(restaurantId?: string) {
+    return userRepository.findAll(restaurantId);
   }
 
-  async getById(id: string) {
-    const user = await userRepository.findById(id);
-
-    if (!user) {
-      throw new NotFoundError("User not found.");
-    }
-
+  async getById(id: string, restaurantId?: string) {
+    const user = await userRepository.findById(id, restaurantId);
+    if (!user) throw new NotFoundError("User not found.");
     return user;
   }
 
-  async updateStatus(
-    id: string,
-    isActive: boolean
-  ) {
-    const user = await userRepository.updateStatus(
-      id,
-      isActive
-    );
-
-    if (!user) {
-      throw new NotFoundError("User not found.");
-    }
-
+  async updateStatus(id: string, isActive: boolean, restaurantId?: string) {
+    const user = await userRepository.updateStatus(id, isActive, restaurantId);
+    if (!user) throw new NotFoundError("User not found.");
     return user;
   }
 
   async updateRole(
-  id: string,
-  roleId: string
-) {
-  const user = await userRepository.findById(id);
+    id: string,
+    roleId: string,
+    restaurantId?: string,
+    actorIsSuperAdmin = false,
+  ) {
+    const user = await userRepository.findById(id, restaurantId);
+    if (!user) throw new NotFoundError("User not found.");
 
-  if (!user) {
-    throw new NotFoundError("User not found.");
-  }
+    const role = await roleRepository.findById(roleId);
+    if (!role || !role.isActive) throw new NotFoundError("Role not found.");
 
-  const role = await roleRepository.findById(roleId);
-
-  if (!role || !role.isActive) {
-    throw new NotFoundError("Role not found.");
-  }
-
-  return await userRepository.updateRole(
-    id,
-    roleId
-  );
-}
-
-  async delete(id: string) {
-    const user = await userRepository.findById(id);
-
-    if (!user) {
-      throw new NotFoundError("User not found.");
+    if (role.name === "SUPER_ADMIN" && !actorIsSuperAdmin) {
+      throw new ForbiddenError("Only a super administrator can assign the SUPER_ADMIN role.");
     }
 
-    await userRepository.softDelete(id);
+    const updated = await userRepository.updateRole(id, roleId, restaurantId);
+    if (!updated) throw new NotFoundError("User not found.");
+    return updated;
+  }
+
+  async delete(id: string, restaurantId?: string) {
+    const user = await userRepository.findById(id, restaurantId);
+    if (!user) throw new NotFoundError("User not found.");
+    await userRepository.softDelete(id, restaurantId);
   }
 }
 

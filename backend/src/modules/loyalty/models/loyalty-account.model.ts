@@ -6,6 +6,7 @@ import {
   model,
 } from "mongoose";
 
+import { tenantPlugin } from "../../../common/tenant/tenant-plugin";
 export interface ILoyaltyAccount extends Document {
   restaurantId: Types.ObjectId;
   customerId: Types.ObjectId;
@@ -78,6 +79,8 @@ loyaltyAccountSchema.index(
     unique: true,
   }
 );
+
+loyaltyAccountSchema.plugin(tenantPlugin);
 
 export const LoyaltyAccount: Model<ILoyaltyAccount> =
   model<ILoyaltyAccount>(

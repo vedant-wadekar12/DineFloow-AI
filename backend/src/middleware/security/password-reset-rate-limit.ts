@@ -1,13 +1,8 @@
-import rateLimit from "express-rate-limit";
+import { passwordResetRateLimiter } from "../rate-limit/redis-rate-limiter";
 
-export const passwordResetRateLimit = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 5,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: {
-    success: false,
-    message:
-      "Too many password reset attempts. Please try again later.",
-  },
-});
+/**
+ * Redis-backed distributed rate limiter for password reset endpoints.
+ * Works correctly across all PM2 cluster instances.
+ * Falls back gracefully (fail-closed) if Redis is offline.
+ */
+export { passwordResetRateLimiter as passwordResetRateLimit };

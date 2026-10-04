@@ -1,5 +1,6 @@
 import { Document, Model, Schema, Types, model } from "mongoose";
 
+import { tenantPlugin } from "../../../common/tenant/tenant-plugin";
 export type BillStatus =
   | "DRAFT"
   | "ISSUED"
@@ -233,6 +234,8 @@ billSchema.index({
   restaurantId: 1,
   status: 1,
 });
+
+billSchema.plugin(tenantPlugin);
 
 export const Bill: Model<IBill> = model<IBill>(
   "Bill",

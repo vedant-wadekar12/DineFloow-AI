@@ -2,8 +2,8 @@ import { NextFunction, Response } from "express";
 
 import { AuthenticatedRequest } from "../../../common/interfaces";
 import { passwordUtil } from "../../../common/utilities";
-import { userRepository } from "../repositories/user.repository";
 import { authRepository } from "../../auth/repositories/auth.repository";
+import { roleRepository } from "../../roles";
 import { userService } from "../services/user.service";
 
 export class UserController {
@@ -27,10 +27,17 @@ export class UserController {
         });
       }
 
+      const role = await roleRepository.findById(user.roleId);
+      const userPayload =
+        typeof user.toJSON === "function" ? user.toJSON() : user;
+
       return res.status(200).json({
         success: true,
         message: "User profile retrieved successfully.",
-        data: user,
+        data: {
+          ...userPayload,
+          roleName: role?.name ?? req.user!.roleName,
+        },
       });
     } catch (error) {
       next(error);
@@ -44,7 +51,8 @@ export class UserController {
 ) {
   try {
     await userService.delete(
-      String(req.params.userId)
+      String(req.params.userId),
+      req.user!.roleName === "SUPER_ADMIN" ? undefined : req.user!.restaurantId
     );
 
     return res.status(200).json({
@@ -95,7 +103,9 @@ export class UserController {
   try {
     const user = await userService.updateRole(
       String(req.params.userId),
-      req.body.roleId
+      req.body.roleId,
+      req.user!.roleName === "SUPER_ADMIN" ? undefined : req.user!.restaurantId,
+      req.user!.roleName === "SUPER_ADMIN"
     );
 
     return res.status(200).json({
@@ -116,9 +126,10 @@ export class UserController {
   try {
     const { isActive } = req.body;
 
-    const user = await userRepository.updateStatus(
+    const user = await userService.updateStatus(
       req.params.userId as string,
-      isActive
+      isActive,
+      req.user!.roleName === "SUPER_ADMIN" ? undefined : req.user!.restaurantId
     );
 
     if (!user) {
@@ -203,12 +214,14 @@ async changePassword(
   }
 }
 async getAllUsers(
-  _req: AuthenticatedRequest,
+  req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
 ) {
   try {
-    const users = await userService.getAll();
+    const users = await userService.getAll(
+      req.user!.roleName === "SUPER_ADMIN" ? undefined : req.user!.restaurantId
+    );
 
     return res.status(200).json({
       success: true,
@@ -227,7 +240,8 @@ async getUserById(
 ) {
   try {
     const user = await userService.getById(
-      String(req.params.userId)
+      String(req.params.userId),
+      req.user!.roleName === "SUPER_ADMIN" ? undefined : req.user!.restaurantId
     );
 
     return res.status(200).json({

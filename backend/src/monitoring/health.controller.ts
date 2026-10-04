@@ -36,4 +36,29 @@ export class HealthController {
       next(error);
     }
   };
+
+  getReadiness = async (
+    _req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const ready =
+        await this.service.getReadiness();
+
+      const statusCode =
+        ready.status === "ready"
+          ? 200
+          : 503;
+
+      res.status(statusCode).json({
+        success:
+          ready.status === "ready",
+
+        data: ready,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
 }

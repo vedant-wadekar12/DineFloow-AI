@@ -6,6 +6,7 @@ import {
   model,
 } from "mongoose";
 
+import { tenantPlugin } from "../../../common/tenant/tenant-plugin";
 export type SubscriptionStatus =
   | "TRIAL"
   | "ACTIVE"
@@ -144,6 +145,8 @@ subscriptionSchema.index(
     unique: true,
   }
 );
+
+subscriptionSchema.plugin(tenantPlugin);
 
 export const Subscription:
   Model<ISubscription> =

@@ -10,6 +10,7 @@ import {
   InventoryUnit,
 } from "../constants/inventory.constants";
 
+import { tenantPlugin } from "../../../common/tenant/tenant-plugin";
 export interface IInventoryItem extends Document {
   restaurantId: Types.ObjectId;
   branchId?: Types.ObjectId;
@@ -170,6 +171,8 @@ inventoryItemSchema.index({
   branchId: 1,
   currentStock: 1,
 });
+
+inventoryItemSchema.plugin(tenantPlugin);
 
 export const InventoryItem =
   model<IInventoryItem>(

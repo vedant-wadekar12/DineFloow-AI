@@ -1,5 +1,6 @@
 import { Schema, model, Document, Types } from "mongoose";
 
+import { tenantPlugin } from "../../../common/tenant/tenant-plugin";
 export interface ISupplier extends Document {
   restaurantId: Types.ObjectId;
   branchId?: Types.ObjectId;
@@ -140,5 +141,7 @@ supplierSchema.index({
   restaurantId: 1,
   gstNumber: 1,
 });
+
+supplierSchema.plugin(tenantPlugin);
 
 export const Supplier = model<ISupplier>("Supplier", supplierSchema);

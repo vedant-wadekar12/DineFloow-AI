@@ -4,6 +4,7 @@ import {
   Document,
 } from "mongoose";
 
+import { tenantPlugin } from "../../../common/tenant/tenant-plugin";
 export interface IAuditLog
   extends Document {
   userId?: string;
@@ -126,6 +127,8 @@ auditLogSchema.index({
   resource: 1,
   resourceId: 1,
 });
+
+auditLogSchema.plugin(tenantPlugin);
 
 export const AuditLog =
   model<IAuditLog>(

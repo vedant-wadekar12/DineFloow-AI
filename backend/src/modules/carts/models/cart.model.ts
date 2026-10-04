@@ -5,6 +5,7 @@ import {
   Types,
 } from "mongoose";
 
+import { tenantPlugin } from "../../../common/tenant/tenant-plugin";
 export interface ICartItem {
   _id?: Types.ObjectId;
   menuItemId: Types.ObjectId;
@@ -205,6 +206,8 @@ cartSchema.index({
   sessionId: 1,
   isActive: 1,
 });
+
+cartSchema.plugin(tenantPlugin);
 
 export const Cart = model<ICart>(
   "Cart",

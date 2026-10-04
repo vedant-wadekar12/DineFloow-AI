@@ -9,6 +9,7 @@ import {
   StockTransactionType,
 } from "../constants/inventory.constants";
 
+import { tenantPlugin } from "../../../common/tenant/tenant-plugin";
 export interface IStockTransaction
   extends Document {
   inventoryItemId: Types.ObjectId;
@@ -116,6 +117,8 @@ stockTransactionSchema.index({
   inventoryItemId: 1,
   createdAt: -1,
 });
+
+stockTransactionSchema.plugin(tenantPlugin);
 
 export const StockTransaction =
   model<IStockTransaction>(

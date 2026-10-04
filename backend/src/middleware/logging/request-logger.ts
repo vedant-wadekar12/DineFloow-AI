@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import { NextFunction, Request, Response } from "express";
 
 import { logger } from "../../config";
@@ -7,11 +8,18 @@ export const requestLogger = (
   res: Response,
   next: NextFunction
 ) => {
-  logger.info(`${req.method} ${req.originalUrl}`);
+  const requestId =
+    (req.headers["x-request-id"] as string) ||
+    crypto.randomUUID();
+
+  (req as any).id = requestId;
+  res.setHeader("X-Request-ID", requestId);
+
+  logger.info(`[${requestId}] ${req.method} ${req.originalUrl}`);
 
   res.on("finish", () => {
     logger.info(
-      `${req.method} ${req.originalUrl} ${res.statusCode}`
+      `[${requestId}] ${req.method} ${req.originalUrl} ${res.statusCode}`
     );
   });
 

@@ -1,6 +1,7 @@
 import { Document, Schema, Types, model } from "mongoose";
 
 export interface IFloor extends Document {
+  restaurantId: Types.ObjectId;
   branchId: Types.ObjectId;
   name: string;
   code: string;
@@ -14,69 +15,33 @@ export interface IFloor extends Document {
 
 const floorSchema = new Schema<IFloor>(
   {
+    restaurantId: {
+      type: Schema.Types.ObjectId,
+      ref: "Restaurant",
+      required: true,
+      index: true,
+    },
     branchId: {
       type: Schema.Types.ObjectId,
       ref: "Branch",
       required: true,
       index: true,
     },
-
-    name: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-
-    code: {
-      type: String,
-      required: true,
-      trim: true,
-      uppercase: true,
-    },
-
-    description: {
-      type: String,
-      trim: true,
-    },
-
-    floorNumber: {
-      type: Number,
-      required: true,
-      min: 0,
-    },
-
-    isActive: {
-      type: Boolean,
-      default: true,
-    },
-
-    isDeleted: {
-      type: Boolean,
-      default: false,
-    },
-
-    createdBy: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
-    },
-
-    updatedBy: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
-    },
+    name: { type: String, required: true, trim: true },
+    code: { type: String, required: true, trim: true, uppercase: true },
+    description: { type: String, trim: true },
+    floorNumber: { type: Number, required: true, min: 0 },
+    isActive: { type: Boolean, default: true },
+    isDeleted: { type: Boolean, default: false },
+    createdBy: { type: Schema.Types.ObjectId, ref: "User" },
+    updatedBy: { type: Schema.Types.ObjectId, ref: "User" },
   },
-  {
-    timestamps: true,
-    versionKey: false,
-  }
+  { timestamps: true, versionKey: false }
 );
 
-floorSchema.index(
-  { branchId: 1, code: 1 },
-  { unique: true }
-);
+floorSchema.index({ restaurantId: 1, branchId: 1, code: 1 }, { unique: true });
 
-export const Floor = model<IFloor>(
-  "Floor",
-  floorSchema
-);
+import { tenantPlugin } from "../../../common/tenant/tenant-plugin";
+floorSchema.plugin(tenantPlugin);
+
+export const Floor = model<IFloor>("Floor", floorSchema);

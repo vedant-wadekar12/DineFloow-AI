@@ -3,6 +3,7 @@ import { Router } from "express";
 import {
   authenticate,
   authorizePermissions,
+  requireSuperAdmin,
 } from "../../../middleware/auth";
 
 import { validateRequest } from "../../../middleware/validation";
@@ -21,6 +22,7 @@ router.post(
   "/:roleId/permissions",
   authenticate,
   authorizePermissions("role:update"),
+  requireSuperAdmin,
   validateRequest(assignPermissionSchema),
   (req, res, next) =>
     rolePermissionController.assignPermission(

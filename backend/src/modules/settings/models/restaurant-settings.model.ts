@@ -1,5 +1,6 @@
 import { Document, model, Schema, Types } from "mongoose";
 
+import { tenantPlugin } from "../../../common/tenant/tenant-plugin";
 export interface IRestaurantSettings extends Document {
   restaurantId: Types.ObjectId;
 
@@ -180,6 +181,8 @@ const restaurantSettingsSchema =
       timestamps: true,
     }
   );
+
+restaurantSettingsSchema.plugin(tenantPlugin);
 
 export const RestaurantSettings =
   model<IRestaurantSettings>(

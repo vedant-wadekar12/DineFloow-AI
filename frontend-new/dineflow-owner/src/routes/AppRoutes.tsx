@@ -1,0 +1,56 @@
+import { Route, Routes } from "react-router-dom";
+import ProtectedRoute from "./ProtectedRoute";
+import RoleGuard from "./RoleGuard";
+import DashboardLayout from "@/layouts/DashboardLayout";
+import Home from "@/pages/home/Home";
+import Features from "@/pages/Features/Features";
+import Pricing from "@/pages/Pricing/Pricing";
+import About from "@/pages/About/About";
+import Contact from "@/pages/Contact/Contact";
+import Login from "@/pages/Auth/Login";
+import Register from "@/pages/Auth/Register";
+import ForgotPassword from "@/pages/Auth/ForgotPassword";
+import ResetPassword from "@/pages/Auth/ResetPassword";
+import VerifyEmail from "@/pages/Auth/VerifyEmail";
+import RoleLanding from "@/app/RoleLanding";
+import RoleRequired from "@/app/RoleRequired";
+import AppPreview from "@/app/AppPreview";
+import Dashboard from "@/pages/Dashboard/Dashboard";
+import Restaurants from "@/pages/Restaurants/Restaurants";
+import RestaurantDetailsPage from "@/pages/Restaurants/RestaurantDetailsPage";
+import EditRestaurantPage from "@/pages/Restaurants/EditRestaurantPage";
+import Branches from "@/pages/Branches/Branches";
+import BranchDetails from "@/pages/Branches/BranchDetails";
+import Floors from "@/pages/Floors/Floors";
+import FloorDetails from "@/pages/Floors/FloorDetails";
+import Tables from "@/pages/Tables/Tables";
+import QRManagement from "@/pages/QR/QRManagement";
+import Menu from "@/pages/Menu/Menu";
+import Employees from "@/pages/Employees/Employees";
+import Customers from "@/pages/Customers/Customers";
+import Inventory from "@/pages/Inventory/Inventory";
+import Suppliers from "@/pages/Suppliers/Suppliers";
+import Purchases from "@/pages/Purchases/Purchases";
+import Orders from "@/pages/Orders/Orders";
+import Kitchen from "@/pages/Kitchen/Kitchen";
+import Waiter from "@/pages/Waiter/Waiter";
+import Billing from "@/pages/Billing/Billing";
+import Payments from "@/pages/Payments/Payments";
+import Analytics from "@/pages/Analytics/Analytics";
+import Reports from "@/pages/Reports/Reports";
+import Notifications from "@/pages/Notifications/Notifications";
+import AI from "@/pages/AI/AI";
+import Settings from "@/pages/Settings/Settings";
+import Profile from "@/pages/Profile/Profile";
+import Subscription from "@/pages/Subscription/Subscription";
+import Coupons from "@/pages/Coupons/Coupons";
+import Offers from "@/pages/Offers/Offers";
+import Loyalty from "@/pages/Loyalty/Loyalty";
+import Audit from "@/pages/Audit/Audit";
+import Uploads from "@/pages/Uploads/Uploads";
+import Cart from "@/pages/Cart/Cart";
+import PermissionGuard from "./PermissionGuard";
+
+function NotFoundPage(){return <div className="flex min-h-screen items-center justify-center bg-[#FFFDF8] p-6"><div className="text-center"><p className="text-7xl font-bold text-[#FF6B35]">404</p><h1 className="mt-4 text-2xl font-bold text-gray-900">Page not found</h1><p className="mt-2 text-gray-500">The page does not exist in this application.</p></div></div>}
+
+export default function AppRoutes(){return <Routes><Route path="/" element={<Home/>}/><Route path="/features" element={<Features/>}/><Route path="/pricing" element={<Pricing/>}/><Route path="/about" element={<About/>}/><Route path="/contact" element={<Contact/>}/><Route path="/login" element={<Login/>}/><Route path="/register" element={<Register/>}/><Route path="/forgot-password" element={<ForgotPassword/>}/><Route path="/reset-password" element={<ResetPassword/>}/><Route path="/verify-email" element={<VerifyEmail/>}/><Route path="/preview" element={<AppPreview title="DineFlow Owner" description="Owner UI preview. No fake API data is used." links={[{label:"Restaurant management",href:"/restaurants"},{label:"Branches",href:"/branches"},{label:"Floors",href:"/floors"},{label:"Tables",href:"/tables"},{label:"Menu",href:"/menu"},{label:"Inventory",href:"/inventory"},{label:"Orders",href:"/orders"},{label:"Kitchen",href:"/chef"},{label:"Waiter",href:"/waiter"},{label:"Billing",href:"/billing"},{label:"Analytics",href:"/analytics"}]}/>} /><Route element={<ProtectedRoute/>}><Route path="/role-required" element={<RoleRequired appName="DineFlow Owner" expectedRoles={["RESTAURANT_OWNER"]}/>}/><Route path="/dashboard" element={<RoleLanding expectedRoles={["RESTAURANT_OWNER"]} dashboardPath="/workspace" appName="DineFlow Owner"/>}/><Route element={<RoleGuard roles={["RESTAURANT_OWNER"]}/>}><Route element={<DashboardLayout/>}><Route path="/workspace" element={<Dashboard/>}/><Route path="/restaurants" element={<PermissionGuard permission="restaurant:read"><Restaurants/></PermissionGuard>}/><Route path="/restaurants/:id" element={<RestaurantDetailsPage/>}/><Route path="/restaurants/:id/edit" element={<EditRestaurantPage/>}/><Route path="/branches" element={<PermissionGuard permission="branch:read"><Branches/></PermissionGuard>}/><Route path="/branches/:branchId" element={<BranchDetails/>}/><Route path="/floors" element={<PermissionGuard permission="floor:read"><Floors/></PermissionGuard>}/><Route path="/floors/:floorId" element={<FloorDetails/>}/><Route path="/tables" element={<PermissionGuard permission="table:read"><Tables/></PermissionGuard>}/><Route path="/qr" element={<QRManagement/>}/><Route path="/menu" element={<PermissionGuard permission="menu:read"><Menu/></PermissionGuard>}/><Route path="/employees" element={<Employees/>}/><Route path="/customers" element={<Customers/>}/><Route path="/inventory" element={<Inventory/>}/><Route path="/suppliers" element={<Suppliers/>}/><Route path="/purchases" element={<Purchases/>}/><Route path="/orders" element={<Orders/>}/><Route path="/chef" element={<Kitchen/>}/><Route path="/waiter" element={<Waiter/>}/><Route path="/billing" element={<Billing/>}/><Route path="/payments" element={<Payments/>}/><Route path="/analytics" element={<Analytics/>}/><Route path="/reports" element={<Reports/>}/><Route path="/notifications" element={<Notifications/>}/><Route path="/ai" element={<AI/>}/><Route path="/settings" element={<Settings/>}/><Route path="/profile" element={<Profile/>}/><Route path="/subscription" element={<Subscription/>}/><Route path="/coupons" element={<Coupons/>}/><Route path="/offers" element={<Offers/>}/><Route path="/loyalty" element={<Loyalty/>}/><Route path="/audit" element={<Audit/>}/><Route path="/uploads" element={<Uploads/>}/><Route path="/cart" element={<Cart/>}/></Route></Route></Route><Route path="*" element={<NotFoundPage/>}/></Routes>}

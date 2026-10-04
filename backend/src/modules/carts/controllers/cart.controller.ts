@@ -4,9 +4,16 @@ import {
   NextFunction,
 } from "express";
 
+import { BadRequestError } from "../../../common/errors";
 import { cartService } from "../services/cart.service";
 
 export class CartController {
+  private sessionId(req: Request): string {
+    const value = req.header("x-cart-session-id");
+    if (!value) throw new BadRequestError("x-cart-session-id header is required.");
+    return value;
+  }
+
   async create(
     req: Request,
     res: Response,
@@ -35,7 +42,8 @@ export class CartController {
     try {
       const cart =
         await cartService.getById(
-          String(req.params.cartId)
+          String(req.params.cartId),
+          this.sessionId(req)
         );
 
       res.json({
@@ -56,6 +64,7 @@ export class CartController {
       const cart =
         await cartService.addItem(
           String(req.params.cartId),
+          this.sessionId(req),
           req.body
         );
 
@@ -77,6 +86,7 @@ export class CartController {
       const cart =
         await cartService.updateItem(
           String(req.params.cartId),
+          this.sessionId(req),
           String(req.params.itemId),
           req.body
         );
@@ -99,6 +109,7 @@ export class CartController {
       const cart =
         await cartService.removeItem(
           String(req.params.cartId),
+          this.sessionId(req),
           String(req.params.itemId)
         );
 
@@ -119,7 +130,8 @@ export class CartController {
     try {
       const cart =
         await cartService.clear(
-          String(req.params.cartId)
+          String(req.params.cartId),
+          this.sessionId(req)
         );
 
       res.json({
@@ -139,7 +151,8 @@ export class CartController {
     try {
       const cart =
         await cartService.deactivate(
-          String(req.params.cartId)
+          String(req.params.cartId),
+          this.sessionId(req)
         );
 
       res.json({

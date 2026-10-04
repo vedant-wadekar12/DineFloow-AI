@@ -10,6 +10,11 @@ import {
 } from "../repositories/restaurant.repository";
 
 export class RestaurantService {
+  /**
+   * =========================================================
+   * CREATE RESTAURANT
+   * =========================================================
+   */
   async create(
     payload: {
       name: string;
@@ -21,6 +26,12 @@ export class RestaurantService {
     },
     ownerId: string
   ) {
+    if (!Types.ObjectId.isValid(ownerId)) {
+      throw new NotFoundError(
+        "Invalid owner ID."
+      );
+    }
+
     const existing =
       await restaurantRepository.findBySlug(
         payload.slug
@@ -34,20 +45,44 @@ export class RestaurantService {
 
     return await restaurantRepository.create({
       ...payload,
-      ownerId: new Types.ObjectId(ownerId),
-      createdBy: new Types.ObjectId(ownerId),
+
+      ownerId:
+        new Types.ObjectId(ownerId),
+
+      createdBy:
+        new Types.ObjectId(ownerId),
+
       isActive: true,
+
       isDeleted: false,
     });
   }
 
-  async getAll() {
-    return await restaurantRepository.findAll();
+  /**
+   * =========================================================
+   * GET ALL RESTAURANTS FOR CURRENT OWNER
+   * =========================================================
+   */
+  async getAll(ownerId: string) {
+    return await restaurantRepository.findByOwner(
+      ownerId
+    );
   }
 
-  async getById(id: string) {
+  /**
+   * =========================================================
+   * GET RESTAURANT BY OWNER
+   * =========================================================
+   */
+  async getById(
+    id: string,
+    ownerId: string
+  ) {
     const restaurant =
-      await restaurantRepository.findById(id);
+      await restaurantRepository.findByIdAndOwner(
+        id,
+        ownerId
+      );
 
     if (!restaurant) {
       throw new NotFoundError(
@@ -58,12 +93,23 @@ export class RestaurantService {
     return restaurant;
   }
 
+  /**
+   * =========================================================
+   * GET RESTAURANTS BY OWNER
+   * =========================================================
+   */
   async getByOwner(ownerId: string) {
     return await restaurantRepository.findByOwner(
       ownerId
     );
   }
 
+  /**
+   * =========================================================
+   * UPDATE RESTAURANT
+   * OWNER ONLY
+   * =========================================================
+   */
   async update(
     id: string,
     payload: {
@@ -77,7 +123,10 @@ export class RestaurantService {
     updatedBy: string
   ) {
     const restaurant =
-      await restaurantRepository.findById(id);
+      await restaurantRepository.findByIdAndOwner(
+        id,
+        updatedBy
+      );
 
     if (!restaurant) {
       throw new NotFoundError(
@@ -101,19 +150,97 @@ export class RestaurantService {
       }
     }
 
-    return await restaurantRepository.update(
-      id,
-      {
-        ...payload,
-        updatedBy: new Types.ObjectId(updatedBy),
-      }
-    );
+    const updatedRestaurant =
+      await restaurantRepository.updateByOwner(
+        id,
+        updatedBy,
+        {
+          ...payload,
+
+          updatedBy:
+            new Types.ObjectId(
+              updatedBy
+            ),
+        }
+      );
+
+    if (!updatedRestaurant) {
+      throw new NotFoundError(
+        "Restaurant not found."
+      );
+    }
+
+    return updatedRestaurant;
   }
 
+  /**
+   * =========================================================
+   * UPDATE RESTAURANT STATUS
+   * OWNER ONLY
+   *
+   * Existing owner functionality.
+   * DO NOT use this for SUPER_ADMIN.
+   * =========================================================
+   */
   async updateStatus(
+    id: string,
+    isActive: boolean,
+    ownerId: string
+  ) {
+    if (
+      !Types.ObjectId.isValid(id)
+    ) {
+      throw new NotFoundError(
+        "Invalid restaurant ID."
+      );
+    }
+
+    const restaurant =
+      await restaurantRepository.updateStatusByOwner(
+        id,
+        ownerId,
+        isActive
+      );
+
+    if (!restaurant) {
+      throw new NotFoundError(
+        "Restaurant not found."
+      );
+    }
+
+    return restaurant;
+  }
+
+  /**
+   * =========================================================
+   * UPDATE RESTAURANT STATUS
+   * SUPER ADMIN ONLY
+   *
+   * This method intentionally does NOT use ownerId.
+   *
+   * SUPER_ADMIN can activate/deactivate ANY restaurant.
+   * =========================================================
+   */
+  async updateStatusAsSuperAdmin(
     id: string,
     isActive: boolean
   ) {
+    if (
+      !Types.ObjectId.isValid(id)
+    ) {
+      throw new NotFoundError(
+        "Invalid restaurant ID."
+      );
+    }
+
+    if (
+      typeof isActive !== "boolean"
+    ) {
+      throw new ConflictError(
+        "Restaurant active status must be a boolean."
+      );
+    }
+
     const restaurant =
       await restaurantRepository.updateStatus(
         id,
@@ -129,9 +256,39 @@ export class RestaurantService {
     return restaurant;
   }
 
-  async delete(id: string) {
+  /**
+   * =========================================================
+   * GET ALL RESTAURANTS
+   * SUPER ADMIN ONLY
+   *
+   * This returns all non-deleted restaurants.
+   * =========================================================
+   */
+  async getAllAsSuperAdmin() {
+    return await restaurantRepository.findAll();
+  }
+
+  /**
+   * =========================================================
+   * GET ONE RESTAURANT
+   * SUPER ADMIN ONLY
+   * =========================================================
+   */
+  async getByIdAsSuperAdmin(
+    id: string
+  ) {
+    if (
+      !Types.ObjectId.isValid(id)
+    ) {
+      throw new NotFoundError(
+        "Invalid restaurant ID."
+      );
+    }
+
     const restaurant =
-      await restaurantRepository.findById(id);
+      await restaurantRepository.findById(
+        id
+      );
 
     if (!restaurant) {
       throw new NotFoundError(
@@ -139,7 +296,35 @@ export class RestaurantService {
       );
     }
 
-    await restaurantRepository.softDelete(id);
+    return restaurant;
+  }
+
+  /**
+   * =========================================================
+   * SOFT DELETE
+   * OWNER ONLY
+   * =========================================================
+   */
+  async delete(
+    id: string,
+    ownerId: string
+  ) {
+    const restaurant =
+      await restaurantRepository.findByIdAndOwner(
+        id,
+        ownerId
+      );
+
+    if (!restaurant) {
+      throw new NotFoundError(
+        "Restaurant not found."
+      );
+    }
+
+    await restaurantRepository.softDeleteByOwner(
+      id,
+      ownerId
+    );
   }
 }
 

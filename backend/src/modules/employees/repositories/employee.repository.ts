@@ -1,4 +1,5 @@
 import { Types } from "mongoose";
+
 import {
   Employee,
   IEmployee,
@@ -6,16 +7,18 @@ import {
 
 export class EmployeeRepository {
   async create(
-    payload: Partial<IEmployee>
+    payload: Partial<IEmployee>,
   ): Promise<IEmployee> {
     return await Employee.create(payload);
   }
 
   async findById(
-    id: string | Types.ObjectId
+    id: string | Types.ObjectId,
+    restaurantId: string | Types.ObjectId,
   ): Promise<IEmployee | null> {
     return await Employee.findOne({
       _id: id,
+      restaurantId,
       isDeleted: false,
     })
       .populate("userId")
@@ -24,17 +27,28 @@ export class EmployeeRepository {
   }
 
   async findByUserId(
-    userId: string | Types.ObjectId
+    userId: string | Types.ObjectId,
+    restaurantId?: string | Types.ObjectId,
   ): Promise<IEmployee | null> {
-    return await Employee.findOne({
+    const query: {
+      userId: string | Types.ObjectId;
+      isDeleted: boolean;
+      restaurantId?: string | Types.ObjectId;
+    } = {
       userId,
       isDeleted: false,
-    });
+    };
+
+    if (restaurantId) {
+      query.restaurantId = restaurantId;
+    }
+
+    return await Employee.findOne(query);
   }
 
   async findByEmployeeCode(
     restaurantId: string | Types.ObjectId,
-    employeeCode: string
+    employeeCode: string,
   ): Promise<IEmployee | null> {
     return await Employee.findOne({
       restaurantId,
@@ -43,8 +57,11 @@ export class EmployeeRepository {
     });
   }
 
-  async findAll(): Promise<IEmployee[]> {
+  async findAll(
+    restaurantId: string | Types.ObjectId,
+  ): Promise<IEmployee[]> {
     return await Employee.find({
+      restaurantId,
       isDeleted: false,
     })
       .populate("userId")
@@ -55,7 +72,7 @@ export class EmployeeRepository {
   }
 
   async findByRestaurant(
-    restaurantId: string | Types.ObjectId
+    restaurantId: string | Types.ObjectId,
   ): Promise<IEmployee[]> {
     return await Employee.find({
       restaurantId,
@@ -69,12 +86,23 @@ export class EmployeeRepository {
   }
 
   async findByBranch(
-    branchId: string | Types.ObjectId
+    branchId: string | Types.ObjectId,
+    restaurantId?: string | Types.ObjectId,
   ): Promise<IEmployee[]> {
-    return await Employee.find({
+    const query: {
+      branchId: string | Types.ObjectId;
+      isDeleted: boolean;
+      restaurantId?: string | Types.ObjectId;
+    } = {
       branchId,
       isDeleted: false,
-    })
+    };
+
+    if (restaurantId) {
+      query.restaurantId = restaurantId;
+    }
+
+    return await Employee.find(query)
       .populate("userId")
       .populate("restaurantId")
       .sort({
@@ -84,11 +112,13 @@ export class EmployeeRepository {
 
   async update(
     id: string | Types.ObjectId,
-    payload: Partial<IEmployee>
+    restaurantId: string | Types.ObjectId,
+    payload: Partial<IEmployee>,
   ): Promise<IEmployee | null> {
     return await Employee.findOneAndUpdate(
       {
         _id: id,
+        restaurantId,
         isDeleted: false,
       },
       {
@@ -97,18 +127,20 @@ export class EmployeeRepository {
       {
         new: true,
         runValidators: true,
-      }
+      },
     );
   }
 
   async updateStatus(
     id: string | Types.ObjectId,
+    restaurantId: string | Types.ObjectId,
     status: string,
-    isActive: boolean
+    isActive: boolean,
   ): Promise<IEmployee | null> {
     return await Employee.findOneAndUpdate(
       {
         _id: id,
+        restaurantId,
         isDeleted: false,
       },
       {
@@ -120,16 +152,18 @@ export class EmployeeRepository {
       {
         new: true,
         runValidators: true,
-      }
+      },
     );
   }
 
   async softDelete(
-    id: string | Types.ObjectId
+    id: string | Types.ObjectId,
+    restaurantId: string | Types.ObjectId,
   ): Promise<void> {
     await Employee.findOneAndUpdate(
       {
         _id: id,
+        restaurantId,
         isDeleted: false,
       },
       {
@@ -138,7 +172,7 @@ export class EmployeeRepository {
           isActive: false,
           status: "TERMINATED",
         },
-      }
+      },
     );
   }
 }

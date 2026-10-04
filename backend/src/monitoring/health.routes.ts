@@ -14,4 +14,9 @@ router.get(
   controller.getHealth
 );
 
+router.get(
+  "/ready",
+  controller.getReadiness
+);
+
 export default router;

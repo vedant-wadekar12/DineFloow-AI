@@ -3,6 +3,7 @@ import {
   EmployeeStatus,
 } from "../constants/employee.constants";
 
+import { tenantPlugin } from "../../../common/tenant/tenant-plugin";
 export interface IEmployee extends Document {
   userId: Types.ObjectId;
 
@@ -157,6 +158,8 @@ employeeSchema.index({
   branchId: 1,
   status: 1,
 });
+
+employeeSchema.plugin(tenantPlugin);
 
 export const Employee = model<IEmployee>(
   "Employee",

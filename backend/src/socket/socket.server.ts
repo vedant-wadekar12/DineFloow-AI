@@ -1,10 +1,34 @@
-import { Server } from "socket.io";
+import { Server, Socket } from "socket.io";
 import { Server as HttpServer } from "http";
+import { createAdapter } from "@socket.io/redis-adapter";
+import IORedis from "ioredis";
 
 import { socketAuthentication } from "./socket.auth";
 import { SOCKET_EVENTS } from "./socket.events";
+import { logger } from "../config";
 
 export let io: Server;
+
+const redisUrl = process.env.REDIS_URL ?? "redis://127.0.0.1:6379";
+
+const pubClient = new IORedis(redisUrl, {
+  maxRetriesPerRequest: null,
+  enableOfflineQueue: false,
+  connectTimeout: 1000,
+  lazyConnect: true,
+  retryStrategy(times) {
+    if (times > 1) return null; // stop retrying quickly when Redis is offline
+    return 100;
+  },
+});
+const subClient = pubClient.duplicate();
+
+pubClient.on("error", (err) => {
+  logger.warn("Socket.IO Redis pubClient connection issue:", err.message);
+});
+subClient.on("error", (err) => {
+  logger.warn("Socket.IO Redis subClient connection issue:", err.message);
+});
 
 export const initializeSocket = (
   httpServer: HttpServer
@@ -15,6 +39,18 @@ export const initializeSocket = (
       credentials: true,
     },
   });
+
+  Promise.all([pubClient.connect(), subClient.connect()])
+    .then(() => {
+      io.adapter(createAdapter(pubClient, subClient));
+      logger.info("✅ Socket.IO Redis Adapter initialized successfully");
+    })
+    .catch((err) => {
+      logger.warn(
+        "⚠️ Socket.IO Redis Adapter connection failed; fallback to local memory adapter:",
+        err.message
+      );
+    });
 
   io.use(socketAuthentication);
 

@@ -1,16 +1,9 @@
 import {
   NextFunction,
-  Request,
   Response,
 } from "express";
 
 import { AuthenticatedRequest } from "../../../common/interfaces";
-
-import {
-  createEmployeeSchema,
-  updateEmployeeSchema,
-  updateEmployeeStatusSchema,
-} from "../validators/employee.validator";
 
 import {
   employeeService,
@@ -23,19 +16,16 @@ export class EmployeeController {
     next: NextFunction
   ) {
     try {
-      const data =
-        createEmployeeSchema.parse(req.body);
-
       const employee =
         await employeeService.createEmployee(
-          data,
-          req.user?.userId
+          req.body,
+          String(req.user!.userId),
+          String(req.user!.restaurantId)
         );
 
-      res.status(201).json({
+      return res.status(201).json({
         success: true,
-        message:
-          "Employee created successfully.",
+        message: "Employee created successfully.",
         data: employee,
       });
     } catch (error) {
@@ -44,16 +34,22 @@ export class EmployeeController {
   }
 
   async getAll(
-    _req: Request,
+    req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
   ) {
     try {
-      const employees =
-        await employeeService.getAllEmployees();
+      const restaurantId =
+        String(req.user!.restaurantId);
 
-      res.status(200).json({
+      const employees =
+        await employeeService.getAllEmployees(
+          restaurantId
+        );
+
+      return res.status(200).json({
         success: true,
+        message: "Employees retrieved successfully.",
         data: employees,
       });
     } catch (error) {
@@ -62,18 +58,20 @@ export class EmployeeController {
   }
 
   async getById(
-    req: Request,
+    req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
   ) {
     try {
       const employee =
         await employeeService.getEmployee(
-          String(req.params.employeeId)
+          String(req.params.employeeId),
+          String(req.user!.restaurantId)
         );
 
-      res.status(200).json({
+      return res.status(200).json({
         success: true,
+        message: "Employee retrieved successfully.",
         data: employee,
       });
     } catch (error) {
@@ -82,19 +80,21 @@ export class EmployeeController {
   }
 
   async getByRestaurant(
-    req: Request,
+    req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
   ) {
     try {
-      const employees =
+      const employee =
         await employeeService.getEmployeesByRestaurant(
           String(req.params.restaurantId)
         );
 
-      res.status(200).json({
+      return res.status(200).json({
         success: true,
-        data: employees,
+        message:
+          "Restaurant employees retrieved successfully.",
+        data: employee,
       });
     } catch (error) {
       next(error);
@@ -102,18 +102,21 @@ export class EmployeeController {
   }
 
   async getByBranch(
-    req: Request,
+    req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
   ) {
     try {
       const employees =
         await employeeService.getEmployeesByBranch(
-          String(req.params.branchId)
+          String(req.params.branchId),
+          String(req.user!.restaurantId)
         );
 
-      res.status(200).json({
+      return res.status(200).json({
         success: true,
+        message:
+          "Branch employees retrieved successfully.",
         data: employees,
       });
     } catch (error) {
@@ -127,20 +130,17 @@ export class EmployeeController {
     next: NextFunction
   ) {
     try {
-      const data =
-        updateEmployeeSchema.parse(req.body);
-
       const employee =
         await employeeService.updateEmployee(
           String(req.params.employeeId),
-          data,
-          req.user?.userId
+          req.body,
+          String(req.user!.userId),
+          String(req.user!.restaurantId)
         );
 
-      res.status(200).json({
+      return res.status(200).json({
         success: true,
-        message:
-          "Employee updated successfully.",
+        message: "Employee updated successfully.",
         data: employee,
       });
     } catch (error) {
@@ -149,23 +149,19 @@ export class EmployeeController {
   }
 
   async updateStatus(
-    req: Request,
+    req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
   ) {
     try {
-      const data =
-        updateEmployeeStatusSchema.parse(
-          req.body
-        );
-
       const employee =
         await employeeService.updateStatus(
           String(req.params.employeeId),
-          data.status
+          req.body.status,
+          String(req.user!.restaurantId)
         );
 
-      res.status(200).json({
+      return res.status(200).json({
         success: true,
         message:
           "Employee status updated successfully.",
@@ -177,19 +173,20 @@ export class EmployeeController {
   }
 
   async delete(
-    req: Request,
+    req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
   ) {
     try {
-      const result =
-        await employeeService.deleteEmployee(
-          String(req.params.employeeId)
-        );
+      await employeeService.deleteEmployee(
+        String(req.params.employeeId),
+        String(req.user!.restaurantId)
+      );
 
-      res.status(200).json({
+      return res.status(200).json({
         success: true,
-        ...result,
+        message:
+          "Employee deleted successfully.",
       });
     } catch (error) {
       next(error);

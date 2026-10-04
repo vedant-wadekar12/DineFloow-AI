@@ -1,5 +1,6 @@
 import { Document, Schema, Types, model } from "mongoose";
 
+import { tenantPlugin } from "../../../common/tenant/tenant-plugin";
 export interface IMenuCombo extends Document {
   restaurantId: Types.ObjectId;
   branchId?: Types.ObjectId;
@@ -121,6 +122,8 @@ menuComboSchema.index(
     unique: true,
   }
 );
+
+menuComboSchema.plugin(tenantPlugin);
 
 export const MenuCombo = model<IMenuCombo>(
   "MenuCombo",

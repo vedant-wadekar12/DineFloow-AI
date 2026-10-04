@@ -6,6 +6,7 @@ import {
   model,
 } from "mongoose";
 
+import { tenantPlugin } from "../../../common/tenant/tenant-plugin";
 export type OfferType =
   | "PERCENTAGE"
   | "FIXED"
@@ -191,6 +192,8 @@ offerSchema.index({
   validFrom: 1,
   validUntil: 1,
 });
+
+offerSchema.plugin(tenantPlugin);
 
 export const Offer: Model<IOffer> =
   model<IOffer>(

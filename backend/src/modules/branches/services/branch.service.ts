@@ -1,5 +1,7 @@
 import { Types } from "mongoose";
+
 import {
+  BadRequestError,
   ConflictError,
   NotFoundError,
 } from "../../../common/errors";
@@ -8,9 +10,9 @@ import {
   restaurantRepository,
 } from "../../restaurants/repositories/restaurant.repository";
 
-import {
-  branchRepository,
-} from "../repositories/branch.repository";
+import { branchRepository } from "../repositories/branch.repository";
+import { userRepository } from "../../users/repositories/user.repository";
+import { roleRepository } from "../../roles";
 
 export class BranchService {
   async create(
@@ -25,8 +27,9 @@ export class BranchService {
     createdBy: string
   ) {
     const restaurant =
-      await restaurantRepository.findById(
-        payload.restaurantId
+      await restaurantRepository.findByIdAndOwner(
+        payload.restaurantId,
+        createdBy
       );
 
     if (!restaurant) {
@@ -49,7 +52,8 @@ export class BranchService {
 
     return await branchRepository.create({
       ...payload,
-      restaurantId: new Types.ObjectId(payload.restaurantId),
+      restaurantId:
+        new Types.ObjectId(payload.restaurantId),
       code: payload.code.toUpperCase(),
       createdBy: new Types.ObjectId(createdBy),
       isActive: true,
@@ -57,13 +61,24 @@ export class BranchService {
     });
   }
 
-  async getAll() {
-    return await branchRepository.findAll();
+  async getAll(ownerId: string, restaurantId?: string) {
+    if (restaurantId) {
+      if (!await restaurantRepository.findByIdAndOwner(restaurantId, ownerId)) throw new NotFoundError("Restaurant not found.");
+      return branchRepository.findByRestaurant(restaurantId);
+    }
+    const restaurants = await restaurantRepository.findByOwner(ownerId);
+    return branchRepository.findByRestaurants(restaurants.map((restaurant) => restaurant._id));
   }
 
-  async getById(id: string) {
+  async getById(
+    id: string,
+    ownerId: string
+  ) {
     const branch =
-      await branchRepository.findById(id);
+      await branchRepository.findByIdAndOwner(
+        id,
+        ownerId
+      );
 
     if (!branch) {
       throw new NotFoundError(
@@ -75,11 +90,13 @@ export class BranchService {
   }
 
   async getByRestaurant(
-    restaurantId: string
+    restaurantId: string,
+    ownerId: string
   ) {
     const restaurant =
-      await restaurantRepository.findById(
-        restaurantId
+      await restaurantRepository.findByIdAndOwner(
+        restaurantId,
+        ownerId
       );
 
     if (!restaurant) {
@@ -105,7 +122,10 @@ export class BranchService {
     updatedBy: string
   ) {
     const branch =
-      await branchRepository.findById(id);
+      await branchRepository.findByIdAndOwner(
+        id,
+        updatedBy
+      );
 
     if (!branch) {
       throw new NotFoundError(
@@ -135,22 +155,26 @@ export class BranchService {
       payload.code = code;
     }
 
-    return await branchRepository.update(
+    return await branchRepository.updateByOwner(
       id,
+      updatedBy,
       {
         ...payload,
-        updatedBy: new Types.ObjectId(updatedBy),
+        updatedBy:
+          new Types.ObjectId(updatedBy),
       }
     );
   }
 
   async updateStatus(
     id: string,
-    isActive: boolean
+    isActive: boolean,
+    ownerId: string
   ) {
     const branch =
-      await branchRepository.updateStatus(
+      await branchRepository.updateStatusByOwner(
         id,
+        ownerId,
         isActive
       );
 
@@ -163,28 +187,26 @@ export class BranchService {
     return branch;
   }
 
-  async assignManager(
-    id: string,
-    managerId: string
-  ) {
-    const branch =
-      await branchRepository.assignManager(
-        id,
-        managerId
-      );
-
-    if (!branch) {
-      throw new NotFoundError(
-        "Branch not found."
-      );
-    }
-
-    return branch;
+  async assignManager(id: string, managerId: string, ownerId: string) {
+    const branch = await branchRepository.findByIdAndOwner(id, ownerId);
+    if (!branch) throw new NotFoundError("Branch not found.");
+    if (!Types.ObjectId.isValid(managerId)) throw new BadRequestError("Invalid manager ID.");
+    const manager = await userRepository.findByIdAndRestaurant(managerId, branch.restaurantId);
+    if (!manager || !manager.isActive) throw new NotFoundError("Manager not found.");
+    const role = await roleRepository.findById(manager.roleId);
+    if (!role || role.name !== "BRANCH_MANAGER" || !role.isActive) throw new BadRequestError("Selected user is not an active branch manager.");
+    return branchRepository.assignManager(id, managerId);
   }
 
-  async delete(id: string) {
+  async delete(
+    id: string,
+    ownerId: string
+  ) {
     const branch =
-      await branchRepository.findById(id);
+      await branchRepository.findByIdAndOwner(
+        id,
+        ownerId
+      );
 
     if (!branch) {
       throw new NotFoundError(
@@ -192,7 +214,10 @@ export class BranchService {
       );
     }
 
-    await branchRepository.softDelete(id);
+    await branchRepository.softDeleteByOwner(
+      id,
+      ownerId
+    );
   }
 }
 

@@ -71,4 +71,18 @@ export class HealthService {
       },
     };
   }
+
+  async getReadiness() {
+    const databaseConnected =
+      mongoose.connection.readyState === 1;
+
+    return {
+      status: databaseConnected ? "ready" : "not_ready",
+      timestamp: new Date().toISOString(),
+      database: {
+        connected: databaseConnected,
+        state: mongoose.connection.readyState,
+      },
+    };
+  }
 }

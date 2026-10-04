@@ -5,6 +5,7 @@ import {
   Types,
 } from "mongoose";
 
+import { tenantPlugin } from "../../../common/tenant/tenant-plugin";
 export type KitchenTicketStatus =
   | "QUEUED"
   | "ACCEPTED"
@@ -223,6 +224,8 @@ kitchenTicketSchema.index({
   priority: -1,
   createdAt: 1,
 });
+
+kitchenTicketSchema.plugin(tenantPlugin);
 
 export const KitchenTicket =
   model<IKitchenTicket>(

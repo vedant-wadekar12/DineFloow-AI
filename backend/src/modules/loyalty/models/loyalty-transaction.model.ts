@@ -6,6 +6,7 @@ import {
   model,
 } from "mongoose";
 
+import { tenantPlugin } from "../../../common/tenant/tenant-plugin";
 export type LoyaltyTransactionType =
   | "EARN"
   | "REDEEM"
@@ -117,6 +118,8 @@ loyaltyTransactionSchema.index({
   customerId: 1,
   createdAt: -1,
 });
+
+loyaltyTransactionSchema.plugin(tenantPlugin);
 
 export const LoyaltyTransaction:
   Model<ILoyaltyTransaction> =

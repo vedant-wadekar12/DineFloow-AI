@@ -28,7 +28,9 @@ export class AuthRepository {
   /**
    * Find User By ID
    */
-  async findById(id: string | Types.ObjectId): Promise<IUser | null> {
+  async findById(
+    id: string | Types.ObjectId
+  ): Promise<IUser | null> {
     return await User.findOne({
       _id: id,
       isDeleted: false,
@@ -38,7 +40,9 @@ export class AuthRepository {
   /**
    * Find User By Phone
    */
-  async findByPhone(phone: string): Promise<IUser | null> {
+  async findByPhone(
+    phone: string
+  ): Promise<IUser | null> {
     return await User.findOne({
       phone,
       isDeleted: false,
@@ -48,7 +52,9 @@ export class AuthRepository {
   /**
    * Update Last Login
    */
-  async updateLastLogin(id: string | Types.ObjectId): Promise<void> {
+  async updateLastLogin(
+    id: string | Types.ObjectId
+  ): Promise<void> {
     await User.findByIdAndUpdate(id, {
       lastLogin: new Date(),
     });
@@ -57,7 +63,9 @@ export class AuthRepository {
   /**
    * Increment Login Attempts
    */
-  async incrementLoginAttempts(id: string | Types.ObjectId): Promise<void> {
+  async incrementLoginAttempts(
+    id: string | Types.ObjectId
+  ): Promise<void> {
     await User.findByIdAndUpdate(id, {
       $inc: {
         loginAttempts: 1,
@@ -68,7 +76,9 @@ export class AuthRepository {
   /**
    * Reset Login Attempts
    */
-  async resetLoginAttempts(id: string | Types.ObjectId): Promise<void> {
+  async resetLoginAttempts(
+    id: string | Types.ObjectId
+  ): Promise<void> {
     await User.findByIdAndUpdate(id, {
       loginAttempts: 0,
       $unset: {
@@ -82,7 +92,7 @@ export class AuthRepository {
    */
   async lockAccount(
     id: string | Types.ObjectId,
-    lockUntil: Date,
+    lockUntil: Date
   ): Promise<void> {
     await User.findByIdAndUpdate(id, {
       lockUntil,
@@ -99,7 +109,7 @@ export class AuthRepository {
       lastName?: string;
       phone?: string;
       profileImage?: string;
-    },
+    }
   ): Promise<IUser | null> {
     return await User.findOneAndUpdate(
       {
@@ -112,14 +122,16 @@ export class AuthRepository {
       {
         new: true,
         runValidators: true,
-      },
+      }
     );
   }
 
   /**
    * Deactivate Account
    */
-  async deactivateAccount(id: string | Types.ObjectId): Promise<void> {
+  async deactivateAccount(
+    id: string | Types.ObjectId
+  ): Promise<void> {
     await User.findOneAndUpdate(
       {
         _id: id,
@@ -129,12 +141,15 @@ export class AuthRepository {
         $set: {
           isActive: false,
         },
-      },
+      }
     );
   }
 
+  /**
+   * Find User By ID With Password
+   */
   async findByIdWithPassword(
-    id: string | Types.ObjectId,
+    id: string | Types.ObjectId
   ): Promise<IUser | null> {
     return await User.findOne({
       _id: id,
@@ -142,18 +157,46 @@ export class AuthRepository {
     }).select("+password");
   }
 
+  /**
+   * Update Password
+   */
   async updatePassword(
-  id: string | Types.ObjectId,
-  password: string
-): Promise<void> {
-  const hashedPassword =
-    await passwordUtil.hash(password);
+    id: string | Types.ObjectId,
+    password: string
+  ): Promise<void> {
+    const hashedPassword =
+      await passwordUtil.hash(password);
 
-  await User.findByIdAndUpdate(id, {
-    password: hashedPassword,
-    passwordChangedAt: new Date(),
-  });
-}
+    await User.findByIdAndUpdate(id, {
+      password: hashedPassword,
+      passwordChangedAt: new Date(),
+    });
+  }
+
+  /**
+   * Assign Restaurant To User
+   */
+  async assignRestaurant(
+    userId: string | Types.ObjectId,
+    restaurantId: string | Types.ObjectId
+  ): Promise<IUser | null> {
+    return await User.findOneAndUpdate(
+      {
+        _id: userId,
+        isDeleted: false,
+      },
+      {
+        $set: {
+          restaurantId,
+        },
+      },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+  }
 }
 
-export const authRepository = new AuthRepository();
+export const authRepository =
+  new AuthRepository();

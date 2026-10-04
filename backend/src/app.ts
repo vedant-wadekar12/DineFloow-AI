@@ -19,6 +19,8 @@ import {
 
 const app = express();
 
+app.set("trust proxy", 1);
+
 app.use(helmetConfig);
 
 app.use(corsConfig);
@@ -33,9 +35,16 @@ app.use(requestLogger);
 
 app.use(rateLimiter);
 
-app.use(express.json());
+app.use(
+  express.json({
+    limit: "10mb",
+    verify: (req, _res, buf) => {
+      (req as any).rawBody = buf;
+    },
+  })
+);
 
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 app.use("/api", apiRouter);
 

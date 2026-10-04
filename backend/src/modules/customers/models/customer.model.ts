@@ -9,6 +9,8 @@ import {
   CustomerStatus,
 } from "../constants/customer.constants";
 
+import { tenantPlugin } from "../../../common/tenant/tenant-plugin";
+
 export interface ICustomerAddress {
   label: string;
   addressLine1: string;
@@ -228,8 +230,9 @@ customerSchema.index({
   restaurantId: 1,
   status: 1,
 });
-
+customerSchema.plugin(tenantPlugin);
 export const Customer = model<ICustomer>(
   "Customer",
+  
   customerSchema
 );

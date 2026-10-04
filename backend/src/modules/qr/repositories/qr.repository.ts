@@ -9,23 +9,35 @@ export class QRRepository {
   }
 
   async findById(
-    id: string | Types.ObjectId
+    id: string | Types.ObjectId,
+    restaurantId: string | Types.ObjectId
   ): Promise<IQRCode | null> {
     return await QRCode.findOne({
       _id: id,
+      restaurantId,
       isDeleted: false,
     });
   }
 
   async findByTableId(
-    tableId: string | Types.ObjectId
+    tableId: string | Types.ObjectId,
+    restaurantId: string | Types.ObjectId
   ): Promise<IQRCode | null> {
     return await QRCode.findOne({
       tableId,
+      restaurantId,
       isDeleted: false,
     });
   }
 
+  /*
+   * Public QR lookup.
+   *
+   * This does NOT use restaurantId because customers
+   * are not authenticated when scanning a QR.
+   *
+   * qrToken itself is globally unique.
+   */
   async findByToken(
     qrToken: string
   ): Promise<IQRCode | null> {
@@ -48,18 +60,23 @@ export class QRRepository {
   }
 
   async findByBranch(
-    branchId: string | Types.ObjectId
+    branchId: string | Types.ObjectId,
+    restaurantId: string | Types.ObjectId
   ): Promise<IQRCode[]> {
     return await QRCode.find({
       branchId,
+      restaurantId,
       isDeleted: false,
     }).sort({
       tableNumber: 1,
     });
   }
 
-  async findAll(): Promise<IQRCode[]> {
+  async findAll(
+    restaurantId: string | Types.ObjectId
+  ): Promise<IQRCode[]> {
     return await QRCode.find({
+      restaurantId,
       isDeleted: false,
     }).sort({
       createdAt: -1,
@@ -68,11 +85,13 @@ export class QRRepository {
 
   async update(
     id: string | Types.ObjectId,
+    restaurantId: string | Types.ObjectId,
     payload: Partial<IQRCode>
   ): Promise<IQRCode | null> {
     return await QRCode.findOneAndUpdate(
       {
         _id: id,
+        restaurantId,
         isDeleted: false,
       },
       {
@@ -87,11 +106,13 @@ export class QRRepository {
 
   async updateStatus(
     id: string | Types.ObjectId,
+    restaurantId: string | Types.ObjectId,
     isActive: boolean
   ): Promise<IQRCode | null> {
     return await QRCode.findOneAndUpdate(
       {
         _id: id,
+        restaurantId,
         isDeleted: false,
       },
       {
@@ -107,11 +128,13 @@ export class QRRepository {
   }
 
   async softDelete(
-    id: string | Types.ObjectId
+    id: string | Types.ObjectId,
+    restaurantId: string | Types.ObjectId
   ): Promise<void> {
     await QRCode.findOneAndUpdate(
       {
         _id: id,
+        restaurantId,
         isDeleted: false,
       },
       {

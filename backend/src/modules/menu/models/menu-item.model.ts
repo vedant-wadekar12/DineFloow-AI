@@ -1,5 +1,6 @@
 import { Schema, model, Types, Document } from "mongoose";
 
+import { tenantPlugin } from "../../../common/tenant/tenant-plugin";
 export type MenuItemType =
   | "FOOD"
   | "BEVERAGE"
@@ -161,6 +162,8 @@ menuItemSchema.index(
     unique: true,
   }
 );
+
+menuItemSchema.plugin(tenantPlugin);
 
 export const MenuItem = model<IMenuItem>(
   "MenuItem",

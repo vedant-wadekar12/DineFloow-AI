@@ -5,6 +5,7 @@ import { NotFoundError } from "../../../common/errors";
 
 import { Order } from "../../orders/models/order.model";
 import { User } from "../../auth/models/user.model";
+import { roleRepository } from "../../roles/repositories/role.repository";
 
 import {
   waiterTaskRepository,
@@ -130,6 +131,7 @@ export class WaiterService {
     const waiter =
       await User.findOne({
         _id: data.waiterId,
+        restaurantId: task.restaurantId,
         isActive: true,
         isDeleted: false,
       });
@@ -138,6 +140,11 @@ export class WaiterService {
       throw new NotFoundError(
         "Waiter not found"
       );
+    }
+
+    const waiterRole = await roleRepository.findById(waiter.roleId);
+    if (!waiterRole || waiterRole.name !== "WAITER") {
+      throw new NotFoundError("Waiter not found");
     }
 
     return waiterTaskRepository.update(

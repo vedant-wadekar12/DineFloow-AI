@@ -1,4 +1,8 @@
-import { NextFunction, Request, Response } from "express";
+import {
+  NextFunction,
+  Request,
+  Response,
+} from "express";
 
 import {
   createQRSchema,
@@ -21,12 +25,14 @@ export class QRController {
       const qr =
         await qrService.createQR(
           data,
-          req.user?.userId
+          req.user?.userId,
+          String(req.user!.restaurantId)
         );
 
       res.status(201).json({
         success: true,
-        message: "QR code created successfully.",
+        message:
+          "QR code created successfully.",
         data: qr,
       });
     } catch (error) {
@@ -46,7 +52,8 @@ export class QRController {
       const qr =
         await qrService.regenerateQR(
           tableId,
-          req.user?.userId
+          req.user?.userId,
+          String(req.user!.restaurantId)
         );
 
       res.status(200).json({
@@ -61,14 +68,15 @@ export class QRController {
   }
 
   async getQRById(
-    req: Request,
+    req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
   ) {
     try {
       const qr =
         await qrService.getQRById(
-          String(req.params.qrId)
+          String(req.params.qrId),
+          String(req.user!.restaurantId)
         );
 
       res.status(200).json({
@@ -81,14 +89,15 @@ export class QRController {
   }
 
   async getQRByTableId(
-    req: Request,
+    req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
   ) {
     try {
       const qr =
         await qrService.getQRByTableId(
-          String(req.params.tableId)
+          String(req.params.tableId),
+          String(req.user!.restaurantId)
         );
 
       res.status(200).json({
@@ -121,13 +130,15 @@ export class QRController {
   }
 
   async getAllQRs(
-    _req: Request,
+    req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
   ) {
     try {
       const qrs =
-        await qrService.getAllQRs();
+        await qrService.getAllQRs(
+          String(req.user!.restaurantId)
+        );
 
       res.status(200).json({
         success: true,
@@ -139,14 +150,18 @@ export class QRController {
   }
 
   async getQRsByRestaurant(
-    req: Request,
+    req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
   ) {
     try {
+      /*
+       * Ignore restaurantId from the URL.
+       * Always use the authenticated tenant.
+       */
       const qrs =
         await qrService.getQRsByRestaurant(
-          String(req.params.restaurantId)
+          String(req.user!.restaurantId)
         );
 
       res.status(200).json({
@@ -159,14 +174,15 @@ export class QRController {
   }
 
   async getQRsByBranch(
-    req: Request,
+    req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
   ) {
     try {
       const qrs =
         await qrService.getQRsByBranch(
-          String(req.params.branchId)
+          String(req.params.branchId),
+          String(req.user!.restaurantId)
         );
 
       res.status(200).json({
@@ -190,7 +206,8 @@ export class QRController {
       const qr =
         await qrService.updateStatus(
           String(req.params.qrId),
-          data.isActive
+          data.isActive,
+          String(req.user!.restaurantId)
         );
 
       res.status(200).json({
@@ -205,14 +222,15 @@ export class QRController {
   }
 
   async deleteQR(
-    req: Request,
+    req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
   ) {
     try {
       const result =
         await qrService.deleteQR(
-          String(req.params.qrId)
+          String(req.params.qrId),
+          String(req.user!.restaurantId)
         );
 
       res.status(200).json({

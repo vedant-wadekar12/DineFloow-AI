@@ -1,5 +1,6 @@
 import { Document, model, Schema, Types } from "mongoose";
 
+import { tenantPlugin } from "../../../common/tenant/tenant-plugin";
 export type NotificationType =
   | "ORDER_CREATED"
   | "ORDER_CONFIRMED"
@@ -161,6 +162,8 @@ notificationSchema.index({
   referenceType: 1,
   referenceId: 1,
 });
+
+notificationSchema.plugin(tenantPlugin);
 
 export const Notification = model<INotification>(
   "Notification",

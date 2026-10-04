@@ -9,9 +9,10 @@ export class CartRepository {
     return Cart.create(data);
   }
 
-  async findById(id: string) {
+  async findById(id: string, sessionId: string) {
     return Cart.findOne({
       _id: id,
+      sessionId,
       isActive: true,
     })
       .populate("items.menuItemId")
@@ -43,11 +44,13 @@ export class CartRepository {
 
   async update(
     id: string,
+    sessionId: string,
     data: Partial<ICart>
   ) {
     return Cart.findOneAndUpdate(
       {
         _id: id,
+        sessionId,
         isActive: true,
       },
       {
@@ -59,10 +62,11 @@ export class CartRepository {
     );
   }
 
-  async deactivate(id: string) {
+  async deactivate(id: string, sessionId: string) {
     return Cart.findOneAndUpdate(
       {
         _id: id,
+        sessionId,
         isActive: true,
       },
       {

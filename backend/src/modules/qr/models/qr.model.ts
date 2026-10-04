@@ -1,6 +1,7 @@
 import { Document, Schema, Types, model } from "mongoose";
 import { QRType } from "../constants/qr.constants";
 
+import { tenantPlugin } from "../../../common/tenant/tenant-plugin";
 export interface IQRCode extends Document {
   restaurantId: Types.ObjectId;
   branchId: Types.ObjectId;
@@ -116,6 +117,8 @@ qrSchema.index({
   branchId: 1,
   tableId: 1,
 });
+
+qrSchema.plugin(tenantPlugin);
 
 export const QRCode = model<IQRCode>(
   "QRCode",

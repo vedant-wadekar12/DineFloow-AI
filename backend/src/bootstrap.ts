@@ -87,16 +87,6 @@ const startServer = async (): Promise<void> => {
   process.on("SIGTERM", () => {
     void shutdown("SIGTERM");
   });
-
-  process.on(
-    "SIGINT",
-    () => shutdown("SIGINT")
-  );
-
-  process.on(
-    "SIGTERM",
-    () => shutdown("SIGTERM")
-  );
 };
 
 process.on("uncaughtException", (error) => {

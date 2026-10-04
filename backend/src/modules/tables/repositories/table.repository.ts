@@ -14,30 +14,36 @@ export class TableRepository {
   }
 
   async findById(
-    id: string | Types.ObjectId
+    id: string | Types.ObjectId,
+    restaurantId: string | Types.ObjectId
   ): Promise<ITable | null> {
     return await Table.findOne({
       _id: id,
+      restaurantId,
       isDeleted: false,
     });
   }
 
   async findByNumber(
     floorId: string | Types.ObjectId,
-    tableNumber: number
+    tableNumber: number,
+    restaurantId: string | Types.ObjectId
   ): Promise<ITable | null> {
     return await Table.findOne({
       floorId,
       tableNumber,
+      restaurantId,
       isDeleted: false,
     });
   }
 
   async findByFloor(
-    floorId: string | Types.ObjectId
+    floorId: string | Types.ObjectId,
+    restaurantId: string | Types.ObjectId
   ): Promise<ITable[]> {
     return await Table.find({
       floorId,
+      restaurantId,
       isDeleted: false,
     }).sort({
       tableNumber: 1,
@@ -45,18 +51,23 @@ export class TableRepository {
   }
 
   async findByBranch(
-    branchId: string | Types.ObjectId
+    branchId: string | Types.ObjectId,
+    restaurantId: string | Types.ObjectId
   ): Promise<ITable[]> {
     return await Table.find({
       branchId,
+      restaurantId,
       isDeleted: false,
     }).sort({
       tableNumber: 1,
     });
   }
 
-  async findAll(): Promise<ITable[]> {
+  async findAll(
+    restaurantId: string | Types.ObjectId
+  ): Promise<ITable[]> {
     return await Table.find({
+      restaurantId,
       isDeleted: false,
     }).sort({
       tableNumber: 1,
@@ -65,11 +76,13 @@ export class TableRepository {
 
   async update(
     id: string | Types.ObjectId,
+    restaurantId: string | Types.ObjectId,
     payload: Partial<ITable>
   ): Promise<ITable | null> {
     return await Table.findOneAndUpdate(
       {
         _id: id,
+        restaurantId,
         isDeleted: false,
       },
       {
@@ -84,11 +97,13 @@ export class TableRepository {
 
   async updateStatus(
     id: string | Types.ObjectId,
+    restaurantId: string | Types.ObjectId,
     status: TableStatus
   ): Promise<ITable | null> {
     return await Table.findOneAndUpdate(
       {
         _id: id,
+        restaurantId,
         isDeleted: false,
       },
       {
@@ -104,11 +119,13 @@ export class TableRepository {
 
   async updateActiveStatus(
     id: string | Types.ObjectId,
+    restaurantId: string | Types.ObjectId,
     isActive: boolean
   ): Promise<ITable | null> {
     return await Table.findOneAndUpdate(
       {
         _id: id,
+        restaurantId,
         isDeleted: false,
       },
       {
@@ -123,11 +140,13 @@ export class TableRepository {
   }
 
   async softDelete(
-    id: string | Types.ObjectId
+    id: string | Types.ObjectId,
+    restaurantId: string | Types.ObjectId
   ): Promise<void> {
     await Table.findOneAndUpdate(
       {
         _id: id,
+        restaurantId,
         isDeleted: false,
       },
       {

@@ -1,6 +1,5 @@
 import {
   NextFunction,
-  Request,
   Response,
 } from "express";
 
@@ -34,13 +33,16 @@ export class BranchController {
   }
 
   async getAll(
-    _req: Request,
+    req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
   ) {
     try {
       const branches =
-        await branchService.getAll();
+        await branchService.getAll(
+          String(req.user!.userId),
+          typeof req.query.restaurantId === "string" ? req.query.restaurantId : undefined
+        );
 
       return res.status(200).json({
         success: true,
@@ -53,14 +55,15 @@ export class BranchController {
   }
 
   async getById(
-    req: Request,
+    req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
   ) {
     try {
       const branch =
         await branchService.getById(
-          String(req.params.branchId)
+          String(req.params.branchId),
+          String(req.user!.userId)
         );
 
       return res.status(200).json({
@@ -74,14 +77,15 @@ export class BranchController {
   }
 
   async getByRestaurant(
-    req: Request,
+    req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
   ) {
     try {
       const branches =
         await branchService.getByRestaurant(
-          String(req.params.restaurantId)
+          String(req.params.restaurantId),
+          String(req.user!.userId)
         );
 
       return res.status(200).json({
@@ -119,7 +123,7 @@ export class BranchController {
   }
 
   async updateStatus(
-    req: Request,
+    req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
   ) {
@@ -127,7 +131,8 @@ export class BranchController {
       const branch =
         await branchService.updateStatus(
           String(req.params.branchId),
-          req.body.isActive
+          req.body.isActive,
+          String(req.user!.userId)
         );
 
       return res.status(200).json({
@@ -142,7 +147,7 @@ export class BranchController {
   }
 
   async assignManager(
-    req: Request,
+    req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
   ) {
@@ -150,7 +155,8 @@ export class BranchController {
       const branch =
         await branchService.assignManager(
           String(req.params.branchId),
-          req.body.managerId
+          req.body.managerId,
+          String(req.user!.userId)
         );
 
       return res.status(200).json({
@@ -165,13 +171,14 @@ export class BranchController {
   }
 
   async delete(
-    req: Request,
+    req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
   ) {
     try {
       await branchService.delete(
-        String(req.params.branchId)
+        String(req.params.branchId),
+        String(req.user!.userId)
       );
 
       return res.status(200).json({

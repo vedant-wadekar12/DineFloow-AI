@@ -9,7 +9,7 @@ export const createCartSchema = z.object({
 
   tableId: z.string().optional(),
 
-  sessionId: z.string().min(1),
+  sessionId: z.string().uuid(),
 });
 
 export const addCartItemSchema = z.object({

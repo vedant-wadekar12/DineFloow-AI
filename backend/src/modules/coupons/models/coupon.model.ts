@@ -6,6 +6,7 @@ import {
   model,
 } from "mongoose";
 
+import { tenantPlugin } from "../../../common/tenant/tenant-plugin";
 export type CouponDiscountType =
   | "PERCENTAGE"
   | "FIXED";
@@ -196,6 +197,8 @@ couponSchema.index({
   validFrom: 1,
   validUntil: 1,
 });
+
+couponSchema.plugin(tenantPlugin);
 
 export const Coupon: Model<ICoupon> =
   model<ICoupon>(

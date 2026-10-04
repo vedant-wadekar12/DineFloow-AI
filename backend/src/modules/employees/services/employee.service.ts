@@ -21,7 +21,8 @@ import {
 export class EmployeeService {
   async createEmployee(
     data: CreateEmployeeDto,
-    createdBy?: string
+    createdBy?: string,
+    currentRestaurantId?: string
   ) {
     if (
       !Types.ObjectId.isValid(data.userId) ||
@@ -30,6 +31,10 @@ export class EmployeeService {
       throw new BadRequestError(
         "Invalid user or restaurant ID."
       );
+    }
+
+    if (currentRestaurantId && data.restaurantId !== currentRestaurantId) {
+      throw new BadRequestError("Restaurant does not match the authenticated tenant.");
     }
 
     if (
@@ -44,6 +49,7 @@ export class EmployeeService {
     const user = await User.findOne({
       _id: data.userId,
       isDeleted: false,
+      ...(currentRestaurantId ? { restaurantId: currentRestaurantId } : {}),
     });
 
     if (!user) {
@@ -87,7 +93,8 @@ export class EmployeeService {
 
     const existingUser =
       await employeeRepository.findByUserId(
-        data.userId
+        data.userId,
+        data.restaurantId
       );
 
     if (existingUser) {
@@ -130,9 +137,15 @@ export class EmployeeService {
     });
   }
 
-  async getEmployee(id: string) {
+  async getEmployee(
+    id: string,
+    restaurantId: string
+  ) {
     const employee =
-      await employeeRepository.findById(id);
+      await employeeRepository.findById(
+        id,
+        restaurantId
+      );
 
     if (!employee) {
       throw new NotFoundError(
@@ -143,8 +156,12 @@ export class EmployeeService {
     return employee;
   }
 
-  async getAllEmployees() {
-    return await employeeRepository.findAll();
+  async getAllEmployees(
+    restaurantId: string
+  ) {
+    return await employeeRepository.findAll(
+      restaurantId
+    );
   }
 
   async getEmployeesByRestaurant(
@@ -162,7 +179,8 @@ export class EmployeeService {
   }
 
   async getEmployeesByBranch(
-    branchId: string
+    branchId: string,
+    restaurantId?: string
   ) {
     if (!Types.ObjectId.isValid(branchId)) {
       throw new BadRequestError(
@@ -171,17 +189,28 @@ export class EmployeeService {
     }
 
     return await employeeRepository.findByBranch(
-      branchId
+      branchId,
+      restaurantId
     );
   }
 
   async updateEmployee(
     id: string,
     data: UpdateEmployeeDto,
-    updatedBy?: string
+    updatedBy?: string,
+    restaurantId?: string
   ) {
+    if (!restaurantId) {
+      throw new BadRequestError(
+        "Restaurant context is required."
+      );
+    }
+
     const employee =
-      await employeeRepository.findById(id);
+      await employeeRepository.findById(
+        id,
+        restaurantId
+      );
 
     if (!employee) {
       throw new NotFoundError(
@@ -239,6 +268,7 @@ export class EmployeeService {
 
     return await employeeRepository.update(
       id,
+      restaurantId,
       {
         ...data,
         employeeCode:
@@ -259,7 +289,8 @@ export class EmployeeService {
       | "ACTIVE"
       | "INACTIVE"
       | "SUSPENDED"
-      | "TERMINATED"
+      | "TERMINATED",
+    restaurantId: string
   ) {
     const isActive =
       status === "ACTIVE";
@@ -267,6 +298,7 @@ export class EmployeeService {
     const employee =
       await employeeRepository.updateStatus(
         id,
+        restaurantId,
         status,
         isActive
       );
@@ -280,9 +312,15 @@ export class EmployeeService {
     return employee;
   }
 
-  async deleteEmployee(id: string) {
+  async deleteEmployee(
+    id: string,
+    restaurantId: string
+  ) {
     const employee =
-      await employeeRepository.findById(id);
+      await employeeRepository.findById(
+        id,
+        restaurantId
+      );
 
     if (!employee) {
       throw new NotFoundError(
@@ -290,7 +328,10 @@ export class EmployeeService {
       );
     }
 
-    await employeeRepository.softDelete(id);
+    await employeeRepository.softDelete(
+      id,
+      restaurantId
+    );
 
     return {
       message:

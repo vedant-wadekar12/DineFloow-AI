@@ -1,10 +1,14 @@
 import { Types } from "mongoose";
 
-import { NotFoundError } from "../../../common/errors";
+import { BadRequestError, NotFoundError } from "../../../common/errors";
 
 import { MenuItem } from "../../menu/models/menu-item.model";
 import { MenuVariant } from "../../menu/models/menu-variant.model";
 import { MenuAddon } from "../../menu/models/menu-addon.model";
+import { Restaurant } from "../../restaurants/models/restaurant.model";
+import { Branch } from "../../branches/models/branch.model";
+import { Table } from "../../tables/models/table.model";
+import { Customer } from "../../customers/models/customer.model";
 
 import { cartRepository } from "../repositories/cart.repository";
 
@@ -37,6 +41,59 @@ export class CartService {
   async create(input: unknown) {
     const data =
       createCartSchema.parse(input);
+
+    if (!Types.ObjectId.isValid(data.restaurantId)) {
+      throw new BadRequestError("Invalid restaurant ID.");
+    }
+
+    const restaurant = await Restaurant.findOne({
+      _id: data.restaurantId,
+      isActive: true,
+      isDeleted: false,
+    });
+
+    if (!restaurant) {
+      throw new NotFoundError("Restaurant not found.");
+    }
+
+    if (data.branchId) {
+      if (!Types.ObjectId.isValid(data.branchId)) {
+        throw new BadRequestError("Invalid branch ID.");
+      }
+      const branch = await Branch.findOne({
+        _id: data.branchId,
+        restaurantId: data.restaurantId,
+        isActive: true,
+        isDeleted: false,
+      });
+      if (!branch) throw new NotFoundError("Branch not found.");
+    }
+
+    if (data.tableId) {
+      if (!Types.ObjectId.isValid(data.tableId)) {
+        throw new BadRequestError("Invalid table ID.");
+      }
+      const table = await Table.findOne({
+        _id: data.tableId,
+        restaurantId: data.restaurantId,
+        ...(data.branchId ? { branchId: data.branchId } : {}),
+        isActive: true,
+        isDeleted: false,
+      });
+      if (!table) throw new NotFoundError("Table not found.");
+    }
+
+    if (data.customerId) {
+      if (!Types.ObjectId.isValid(data.customerId)) {
+        throw new BadRequestError("Invalid customer ID.");
+      }
+      const customer = await Customer.findOne({
+        _id: data.customerId,
+        restaurantId: data.restaurantId,
+        isDeleted: false,
+      });
+      if (!customer) throw new NotFoundError("Customer not found.");
+    }
 
     const existing =
       await cartRepository.findActiveBySession(
@@ -80,9 +137,9 @@ export class CartService {
     });
   }
 
-  async getById(id: string) {
+  async getById(id: string, sessionId: string) {
     const cart =
-      await cartRepository.findById(id);
+      await cartRepository.findById(id, sessionId);
 
     if (!cart) {
       throw new NotFoundError(
@@ -95,13 +152,14 @@ export class CartService {
 
   async addItem(
     cartId: string,
+    sessionId: string,
     input: unknown
   ) {
     const data =
       addCartItemSchema.parse(input);
 
     const cart =
-      await this.getById(cartId);
+      await this.getById(cartId, sessionId);
 
     const menuItem =
       await MenuItem.findOne({
@@ -111,7 +169,7 @@ export class CartService {
         isAvailable: true,
       });
 
-    if (!menuItem) {
+    if (!menuItem || menuItem.restaurantId.toString() !== cart.restaurantId.toString()) {
       throw new NotFoundError(
         "Menu item is not available"
       );
@@ -126,6 +184,7 @@ export class CartService {
         await MenuVariant.findOne({
           _id: data.variantId,
           menuItemId: data.menuItemId,
+          restaurantId: cart.restaurantId,
           isDeleted: false,
           isActive: true,
           isAvailable: true,
@@ -149,6 +208,7 @@ export class CartService {
         const addon =
           await MenuAddon.findOne({
             _id: selected.addonId,
+            restaurantId: cart.restaurantId,
             isDeleted: false,
             isActive: true,
             isAvailable: true,
@@ -232,6 +292,7 @@ export class CartService {
 
   async updateItem(
     cartId: string,
+    sessionId: string,
     itemId: string,
     input: unknown
   ) {
@@ -239,7 +300,7 @@ export class CartService {
       updateCartItemSchema.parse(input);
 
     const cart =
-      await this.getById(cartId);
+      await this.getById(cartId, sessionId);
 
     const item = cart.items.find(
       (cartItem) =>
@@ -299,10 +360,11 @@ export class CartService {
 
   async removeItem(
     cartId: string,
+    sessionId: string,
     itemId: string
   ) {
     const cart =
-      await this.getById(cartId);
+      await this.getById(cartId, sessionId);
 
     const itemExists =
       cart.items.some(
@@ -344,9 +406,9 @@ export class CartService {
     return cart.save();
   }
 
-  async clear(cartId: string) {
+  async clear(cartId: string, sessionId: string) {
     const cart =
-      await this.getById(cartId);
+      await this.getById(cartId, sessionId);
 
     cart.items = [];
     cart.subtotal = 0;
@@ -357,10 +419,11 @@ export class CartService {
     return cart.save();
   }
 
-  async deactivate(cartId: string) {
+  async deactivate(cartId: string, sessionId: string) {
     const cart =
       await cartRepository.deactivate(
-        cartId
+        cartId,
+        sessionId
       );
 
     if (!cart) {

@@ -3,6 +3,7 @@ import { Router } from "express";
 import {
   authenticate,
   authorizePermissions,
+  requireSuperAdmin,
 } from "../../../middleware/auth";
 
 import {
@@ -16,6 +17,7 @@ router.use(authenticate);
 router.post(
   "/plans",
   authorizePermissions("subscription:create"),
+  requireSuperAdmin,
   subscriptionController.createPlan
 );
 

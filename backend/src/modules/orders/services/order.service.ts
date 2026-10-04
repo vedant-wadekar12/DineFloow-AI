@@ -29,7 +29,8 @@ export class OrderService {
 
   async create(
     input: unknown,
-    userId?: string
+    userId?: string,
+    sessionId?: string
   ) {
     const data =
       createOrderSchema.parse(input);
@@ -40,13 +41,30 @@ export class OrderService {
 
     const cart = await Cart.findOne({
       _id: data.cartId,
+      ...(sessionId ? { sessionId } : {}),
       isActive: true,
     });
 
-    if (!cart) {
+    if (!cart || (!userId && !sessionId)) {
       throw new NotFoundError(
         "Active cart not found"
       );
+    }
+
+    if (data.restaurantId !== cart.restaurantId.toString()) {
+      throw new NotFoundError("Active cart not found");
+    }
+
+    if (data.branchId && (!cart.branchId || data.branchId !== cart.branchId.toString())) {
+      throw new NotFoundError("Active cart not found");
+    }
+
+    if (data.tableId && (!cart.tableId || data.tableId !== cart.tableId.toString())) {
+      throw new NotFoundError("Active cart not found");
+    }
+
+    if (data.customerId && (!cart.customerId || data.customerId !== cart.customerId.toString())) {
+      throw new NotFoundError("Active cart not found");
     }
 
     // ------------------------------------------------------------
@@ -72,6 +90,7 @@ export class OrderService {
         _id: {
           $in: menuItemIds,
         },
+        restaurantId: cart.restaurantId,
         isDeleted: false,
       });
 
@@ -119,6 +138,7 @@ export class OrderService {
             _id: {
               $in: variantIds,
             },
+            restaurantId: cart.restaurantId,
             isDeleted: false,
           })
         : [];
@@ -150,6 +170,7 @@ export class OrderService {
             _id: {
               $in: addonIds,
             },
+            restaurantId: cart.restaurantId,
             isDeleted: false,
           })
         : [];
@@ -333,6 +354,8 @@ export class OrderService {
             data.cartId
           ),
 
+        sessionId: cart.sessionId,
+
         orderNumber,
 
         orderType:
@@ -416,7 +439,8 @@ export class OrderService {
   async updateStatus(
     id: string,
     input: unknown,
-    userId?: string
+    userId?: string,
+    sessionId?: string
   ) {
     const data =
       updateOrderStatusSchema.parse(
@@ -425,6 +449,10 @@ export class OrderService {
 
     const order =
       await this.getById(id);
+
+    if (!userId && (!sessionId || order.sessionId !== sessionId)) {
+      throw new NotFoundError("Order not found");
+    }
 
     this.validateStatusTransition(
       order.status,
@@ -489,7 +517,8 @@ export class OrderService {
   async cancel(
     id: string,
     input: unknown,
-    userId?: string
+    userId?: string,
+    sessionId?: string
   ) {
     const data =
       cancelOrderSchema.parse(
@@ -498,6 +527,10 @@ export class OrderService {
 
     const order =
       await this.getById(id);
+
+    if (!userId && (!sessionId || order.sessionId !== sessionId)) {
+      throw new NotFoundError("Order not found");
+    }
 
     if (
       order.status !== "PENDING" &&

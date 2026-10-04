@@ -6,8 +6,17 @@ import {
 } from "../../../middleware/auth";
 
 import { paymentController } from "../controllers/payment.controller";
+import { webhookController } from "../controllers/webhook.controller";
+import { webhookRateLimiter } from "../../../middleware/rate-limit/redis-rate-limiter";
 
 const router = Router();
+
+// Unauthenticated Webhook Endpoint (Signature Verified + Rate Limited)
+router.post(
+  "/webhook/razorpay",
+  webhookRateLimiter,
+  webhookController.handleRazorpayWebhook
+);
 
 router.use(authenticate);
 

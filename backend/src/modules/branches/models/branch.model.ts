@@ -1,5 +1,6 @@
 import { Document, Schema, Types, model } from "mongoose";
 
+import { tenantPlugin } from "../../../common/tenant/tenant-plugin";
 export interface IBranch extends Document {
   restaurantId: Types.ObjectId;
   name: string;
@@ -89,6 +90,8 @@ branchSchema.index(
   { restaurantId: 1, code: 1 },
   { unique: true }
 );
+
+branchSchema.plugin(tenantPlugin);
 
 export const Branch = model<IBranch>(
   "Branch",

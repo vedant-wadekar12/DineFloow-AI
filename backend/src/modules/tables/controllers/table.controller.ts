@@ -1,6 +1,5 @@
 import {
   NextFunction,
-  Request,
   Response,
 } from "express";
 
@@ -22,12 +21,14 @@ export class TableController {
       const table =
         await tableService.create(
           req.body,
-          String(req.user!.userId)
+          String(req.user!.userId),
+          String(req.user!.restaurantId)
         );
 
       return res.status(201).json({
         success: true,
-        message: "Table created successfully.",
+        message:
+          "Table created successfully.",
         data: table,
       });
     } catch (error) {
@@ -36,17 +37,20 @@ export class TableController {
   }
 
   async getAll(
-    _req: Request,
+    req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
   ) {
     try {
       const tables =
-        await tableService.getAll();
+        await tableService.getAll(
+          String(req.user!.restaurantId)
+        );
 
       return res.status(200).json({
         success: true,
-        message: "Tables retrieved successfully.",
+        message:
+          "Tables retrieved successfully.",
         data: tables,
       });
     } catch (error) {
@@ -55,19 +59,21 @@ export class TableController {
   }
 
   async getById(
-    req: Request,
+    req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
   ) {
     try {
       const table =
         await tableService.getById(
-          String(req.params.tableId)
+          String(req.params.tableId),
+          String(req.user!.restaurantId)
         );
 
       return res.status(200).json({
         success: true,
-        message: "Table retrieved successfully.",
+        message:
+          "Table retrieved successfully.",
         data: table,
       });
     } catch (error) {
@@ -76,14 +82,15 @@ export class TableController {
   }
 
   async getByFloor(
-    req: Request,
+    req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
   ) {
     try {
       const tables =
         await tableService.getByFloor(
-          String(req.params.floorId)
+          String(req.params.floorId),
+          String(req.user!.restaurantId)
         );
 
       return res.status(200).json({
@@ -98,14 +105,15 @@ export class TableController {
   }
 
   async getByBranch(
-    req: Request,
+    req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
   ) {
     try {
       const tables =
         await tableService.getByBranch(
-          String(req.params.branchId)
+          String(req.params.branchId),
+          String(req.user!.restaurantId)
         );
 
       return res.status(200).json({
@@ -129,12 +137,14 @@ export class TableController {
         await tableService.update(
           String(req.params.tableId),
           req.body,
-          String(req.user!.userId)
+          String(req.user!.userId),
+          String(req.user!.restaurantId)
         );
 
       return res.status(200).json({
         success: true,
-        message: "Table updated successfully.",
+        message:
+          "Table updated successfully.",
         data: table,
       });
     } catch (error) {
@@ -143,7 +153,7 @@ export class TableController {
   }
 
   async updateStatus(
-    req: Request,
+    req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
   ) {
@@ -151,7 +161,8 @@ export class TableController {
       const table =
         await tableService.updateStatus(
           String(req.params.tableId),
-          req.body.status
+          req.body.status,
+          String(req.user!.restaurantId)
         );
 
       return res.status(200).json({
@@ -166,7 +177,7 @@ export class TableController {
   }
 
   async updateActiveStatus(
-    req: Request,
+    req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
   ) {
@@ -174,7 +185,8 @@ export class TableController {
       const table =
         await tableService.updateActiveStatus(
           String(req.params.tableId),
-          req.body.isActive
+          req.body.isActive,
+          String(req.user!.restaurantId)
         );
 
       return res.status(200).json({
@@ -189,18 +201,20 @@ export class TableController {
   }
 
   async delete(
-    req: Request,
+    req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
   ) {
     try {
       await tableService.delete(
-        String(req.params.tableId)
+        String(req.params.tableId),
+        String(req.user!.restaurantId)
       );
 
       return res.status(200).json({
         success: true,
-        message: "Table deleted successfully.",
+        message:
+          "Table deleted successfully.",
       });
     } catch (error) {
       next(error);

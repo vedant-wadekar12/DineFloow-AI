@@ -5,6 +5,7 @@ import {
   model,
 } from "mongoose";
 
+import { tenantPlugin } from "../../../common/tenant/tenant-plugin";
 export type TableStatus =
   | "AVAILABLE"
   | "OCCUPIED"
@@ -13,6 +14,7 @@ export type TableStatus =
   | "OUT_OF_SERVICE";
 
 export interface ITable extends Document {
+  restaurantId: Types.ObjectId;
   branchId: Types.ObjectId;
   floorId: Types.ObjectId;
   name: string;
@@ -32,6 +34,13 @@ export interface ITable extends Document {
 
 const tableSchema = new Schema<ITable>(
   {
+    restaurantId: {
+      type: Schema.Types.ObjectId,
+      ref: "Restaurant",
+      required: true,
+      index: true,
+    },
+
     branchId: {
       type: Schema.Types.ObjectId,
       ref: "Branch",
@@ -117,9 +126,11 @@ const tableSchema = new Schema<ITable>(
 );
 
 tableSchema.index(
-  { floorId: 1, tableNumber: 1 },
+  { restaurantId: 1, floorId: 1, tableNumber: 1 },
   { unique: true }
 );
+
+tableSchema.plugin(tenantPlugin);
 
 export const Table = model<ITable>(
   "Table",

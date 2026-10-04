@@ -5,6 +5,7 @@ import {
   Types,
 } from "mongoose";
 
+import { tenantPlugin } from "../../../common/tenant/tenant-plugin";
 export type OrderStatus =
   | "PENDING"
   | "CONFIRMED"
@@ -61,6 +62,9 @@ export interface IOrder extends Document {
   tableId?: Types.ObjectId;
 
   cartId?: Types.ObjectId;
+
+  /** Public customer session credential for cart/order actions. */
+  sessionId?: string;
 
   orderNumber: string;
 
@@ -357,6 +361,8 @@ orderSchema.index({
   customerId: 1,
   createdAt: -1,
 });
+
+orderSchema.plugin(tenantPlugin);
 
 export const Order = model<IOrder>(
   "Order",

@@ -1,24 +1,7 @@
+/**
+ * DineFlow AI Backend — Entry Point
+ *
+ * This file is the compiled entry point used by PM2 (dist/server.js).
+ * All server startup logic lives in bootstrap.ts.
+ */
 import "./bootstrap";
-import http from "http";
-
-
-
-import app from "./app";
-import {
-  initializeSocket,
-} from "./socket";
-
-const PORT = Number(
-  process.env.PORT ?? 5000
-);
-
-const httpServer =
-  http.createServer(app);
-
-initializeSocket(httpServer);
-
-httpServer.listen(PORT, () => {
-  console.log(
-    `Server running on port ${PORT}`
-  );
-});

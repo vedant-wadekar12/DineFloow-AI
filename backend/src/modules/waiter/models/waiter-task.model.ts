@@ -5,6 +5,7 @@ import {
   Types,
 } from "mongoose";
 
+import { tenantPlugin } from "../../../common/tenant/tenant-plugin";
 export type WaiterTaskStatus =
   | "PENDING"
   | "ACCEPTED"
@@ -138,6 +139,8 @@ waiterTaskSchema.index({
   priority: -1,
   createdAt: 1,
 });
+
+waiterTaskSchema.plugin(tenantPlugin);
 
 export const WaiterTask =
   model<IWaiterTask>(
